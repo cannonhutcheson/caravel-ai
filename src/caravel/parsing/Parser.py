@@ -76,8 +76,18 @@ class Parser:
         return parsed_data
     
     def get_api_dictionary(self):
+        '''
+        Returns the entire API dictionary.
+        '''
         return self.api_dictionary
 
+    def get_api_entry(self, intent: str):
+        '''
+        Returns a single entry from the API Dictionary.
+        '''
+        return self.api_dictionary.get(intent, f"There is no valid route associated with the following intent: {intent}")
+        
+    
     @staticmethod
     def extract_openapi_json(path):
         '''
