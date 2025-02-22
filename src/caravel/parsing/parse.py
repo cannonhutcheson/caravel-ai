@@ -3,6 +3,7 @@ import yaml
 from pathlib import Path
 import pydantic
 import re
+
 '''
 TODO
 - Needs to read in the file.
@@ -47,7 +48,7 @@ def _clean_description(desc):
     return desc
 
     
-def parse_openapi_json(openapi_dict, cleanup_markdown=True, first_sentence=True):
+def parse_openapi_json(openapi_dict, cleanup_markdown=True, first_sentence=True, reformat=False):
     '''
     Parses an OpenAPI JSON Spec and extracts key details for each path.
     
@@ -88,7 +89,13 @@ def parse_openapi_json(openapi_dict, cleanup_markdown=True, first_sentence=True)
                 description = _clean_description(description)
             if first_sentence:
                 description = description.split(".")[0] + "."
+            if reformat:
+                raise Exception("LLM Description Reformatting has not yet been implemented.")
             
+
+            if parsed_data.get(f"{description}", False):
+                raise Exception("This key is already here.")
+                        
             parsed_data[f"{description}"] = {
                 "path": path,
                 "request_example": request_example,

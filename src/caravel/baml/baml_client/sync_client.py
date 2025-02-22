@@ -70,6 +70,29 @@ class BamlSyncClient:
       )
       return cast(types.APIRequest, raw.cast_to(types, types, partial_types, False))
     
+    def CreateDescription(
+        self,
+        current_api_description: str,descriptions: List[str],
+        baml_options: BamlCallOptions = {},
+    ) -> str:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = self.__runtime.call_function_sync(
+        "CreateDescription",
+        {
+          "current_api_description": current_api_description,"descriptions": descriptions,
+        },
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+      return cast(str, raw.cast_to(types, types, partial_types, False))
+    
     def ExtractRequestBodySchema(
         self,
         req_body_json: str,
@@ -179,6 +202,37 @@ class BamlStreamClient:
         raw,
         lambda x: cast(partial_types.APIRequest, x.cast_to(types, types, partial_types, True)),
         lambda x: cast(types.APIRequest, x.cast_to(types, types, partial_types, False)),
+        self.__ctx_manager.get(),
+      )
+    
+    def CreateDescription(
+        self,
+        current_api_description: str,descriptions: List[str],
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlSyncStream[Optional[str], str]:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = self.__runtime.stream_function_sync(
+        "CreateDescription",
+        {
+          "current_api_description": current_api_description,
+          "descriptions": descriptions,
+        },
+        None,
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+
+      return baml_py.BamlSyncStream[Optional[str], str](
+        raw,
+        lambda x: cast(Optional[str], x.cast_to(types, types, partial_types, True)),
+        lambda x: cast(str, x.cast_to(types, types, partial_types, False)),
         self.__ctx_manager.get(),
       )
     
