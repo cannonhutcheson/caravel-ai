@@ -15,3 +15,6 @@ Thumbs.db
 
 htmlcov/
 .coverage
+
+/dist
+dist/

@@ -5,8 +5,17 @@ description = ""
 authors = [
     {name = "cannonhutcheson",email = "cmh96658@uga.edu"}
 ]
+description="A Python package for creating Agentic AI."
 readme = "README.md"
 requires-python = ">=3.11"
+classifiers=[
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-file = "LICENSE"
+[project.urls]
+homepage = "https://github.com/cannonhutcheson/caravel-ai"
 dependencies = [
     "httpx (>=0.28.1,<0.29.0)",
     "baml-py (>=0.76.2,<0.77.0)",
