@@ -10,7 +10,7 @@ class CaravelRegistry:
                 instance_id = id(instance)
                 if instance_id not in cls.functions:
                     cls.functions[instance_id] = {}
-                cls.functions[instance_id][name] = [func, is_async]
+                cls.functions[instance_id][name] = [func.__get__(instance), is_async]
             else:
                 cls.functions[name] = [func, is_async]
             return func    
