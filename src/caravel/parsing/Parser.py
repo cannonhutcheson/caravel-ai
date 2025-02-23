@@ -7,7 +7,7 @@ class Parser:
     def __init__(self):
         self.api_dictionary = dict()
 
-    def _clean_description(desc):
+    def _clean_description(self, desc):
         '''
         Cleans up the OpenAPI description by removing unwanted markdown formatting.
         '''
@@ -46,11 +46,15 @@ class Parser:
                 
                 
                 parameters = details.get("parameters", [])
+                if parameters:
+                    print("PARAM:", parameters)
                 for param in parameters:
                     if param.get("required", False):
                         required.append(param["name"])
                 
                 request_body = details.get("requestBody", {})
+                if request_body:
+                    print("REQ:",request_body)
                 content = request_body.get("content", {})
                 if "application/json" in content:
                     examples = content["application/json"].get("example") or content["application/json"].get("examples", {})
@@ -66,7 +70,7 @@ class Parser:
                 if parsed_data.get(f"{description}", False):
                     raise Exception("This key is already here.")
                             
-                parsed_data[f"{description}"] = {
+                parsed_data[f"{method.upper()} {description}"] = {
                     "path": path,
                     "request_example": request_example,
                     "required": required
