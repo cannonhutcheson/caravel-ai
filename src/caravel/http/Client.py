@@ -10,7 +10,7 @@ class Client:
         self.restricted_routes=restricted_routes
         self.functions: Dict[str, Callable] = {} # allows users to add util functions.
 
-    @CaravelRegistry(is_async=True)    
+    @CaravelRegistry.register(is_async=True)    
     async def post(self, route, params):    
         if "post" not in self.allowed_methods:
             return
@@ -19,7 +19,7 @@ class Client:
                 
         pass
     
-    @CaravelRegistry(is_async=True)
+    @CaravelRegistry.register(is_async=True)
     async def get_all(self, route):
         if "get" not in self.allowed_methods:
             return
@@ -27,7 +27,7 @@ class Client:
             return
         pass
     
-    @CaravelRegistry(is_async=True)
+    @CaravelRegistry.register(is_async=True)
     async def get(self, route):
         if "get" not in self.allowed_methods:
             return
@@ -35,15 +35,22 @@ class Client:
             return 
         pass
     
-    @CaravelRegistry(is_async=True)
+    @CaravelRegistry.register(is_async=True)
     async def patch(self, route, params):
         if "patch" not in self.allowed_methods:
             return
-        if route not in self.restricted_routes:
+        if route in self.restricted_routes:
             return
         pass
     
-    @CaravelRegistry(is_async=True)
+    @CaravelRegistry.register(is_async=True)
+    async def put(self, route, params):
+        if "put" not in self.allowed_methods:
+            return
+        if route in self.restricted_routes:
+            return
+    
+    @CaravelRegistry.register(is_async=True)
     async def delete(self, route):
         if "delete" not in self.allowed_methods:
             return

@@ -3,7 +3,7 @@ from typing import Dict, Any, Callable, Optional
 class CaravelRegistry:
     functions = {}
     @classmethod
-    def register(cls, instance:Optional[object], custom_name=None, is_async=False):
+    def register(cls, instance:Optional[object]=None, custom_name=None, is_async=False):
         def decorator(func: Callable):
             name = custom_name or func.__name__
             if instance:

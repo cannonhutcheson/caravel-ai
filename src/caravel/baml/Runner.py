@@ -1,17 +1,19 @@
+
 import json
-from baml_client.async_client import b
-from baml_client.types import APIRequest, RequestBody
-from baml_client import reset_baml_env_vars
-from caravel.parsing import Parser
+from src.caravel.baml.baml_client.async_client import b
+from src.caravel.baml.baml_client.types import APIRequest, RequestBody
+from src.caravel.parsing import Parser
 import os
 import dotenv
 dotenv.load_dotenv()
+from src.caravel.baml.baml_client import reset_baml_env_vars
 reset_baml_env_vars(dict(os.environ))
 
 class BamlRunner:
 
     def __init__(self, parser: Parser):
         self.parser = parser
+        
     
     @staticmethod
     async def get_request_body(raw_json: str) -> RequestBody:
