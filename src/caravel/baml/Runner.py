@@ -14,6 +14,13 @@ class BamlRunner:
     def __init__(self, parser: Parser):
         self.parser = parser
         
+    @staticmethod
+    async def make_path(path: str, user_input: str) -> str:
+        '''
+        Constructs the path, filling in path params.
+        '''
+        response = await b.MakePath(path, user_input)
+        return response
     
     @staticmethod
     async def get_request_body(raw_json: str) -> RequestBody:
