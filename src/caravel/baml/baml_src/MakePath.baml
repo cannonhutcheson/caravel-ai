@@ -1,7 +1,7 @@
 
 
 template_string NoParamProvided() #"
-    Error: There was insufficient information to infer the parameters of the path.
+    NoParamProvidedError
 "# // NoParamProbided
 
 function MakePath(path: string, user_input: string) -> string @description(#"
