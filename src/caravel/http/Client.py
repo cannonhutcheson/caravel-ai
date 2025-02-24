@@ -1,5 +1,7 @@
 from typing import Callable, Dict
-from src.caravel.registry.caravel_registry import CaravelRegistry
+from src.caravel.registry.CaravelRegistry import CaravelRegistry
+import json
+import httpx
 
 class Client:
     def __init__(self, name: str, base_url: str, auth_headers: dict={}, allowed_methods=["get", "post"], restricted_routes=[]):
@@ -10,31 +12,64 @@ class Client:
         self.restricted_routes=restricted_routes
         self.functions: Dict[str, Callable] = {} # allows users to add util functions.
 
+    def set_auth_headers(self, auth_headers:dict={}):
+        self.auth_headers = auth_headers
+        
+    def get_auth_headers(self):
+        return self.auth_headers
+    
+    def get_base_url(self):
+        return self.base_url
+
     @CaravelRegistry.register(is_async=True)    
-    async def post(self, route, params):    
+    async def post(self, route:str, params:str):    
         if "post" not in self.allowed_methods:
             return
         if route in self.restricted_routes:
             return
-                
-        pass
+        params = json.loads()
+         
+
+    
+    # TODO: figure out typing for params
+    @CaravelRegistry.register(is_async=True)
+    async def get_all(self, route, params, custom_error=None):
+        try:
+            if "get" not in self.allowed_methods:
+                return
+            if route in self.restricted_routes:
+                return
+            with httpx.AsyncClient as client:
+                response = await client.get(
+                    f"{self.get_base_url()}{route}",
+                    params=params,
+                    headers=self.get_auth_headers()
+                )
+                response.raise_for_status()
+                return response.json()
+        except httpx.HTTPStatusError as e:
+            return f"The API request to the route {route} failed with exception {e}"
+
     
     @CaravelRegistry.register(is_async=True)
-    async def get_all(self, route):
-        if "get" not in self.allowed_methods:
-            return
-        if route in self.restricted_routes:
-            return
-        pass
-    
-    @CaravelRegistry.register(is_async=True)
-    async def get(self, route):
+    async def get(self, route, params):
         if "get" not in self.allowed_methods:
             return
         if route in self.restricted_routes:
             return 
-        pass
-    
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.base_url}{route}",
+                    params=params,
+                    headers=self.get_auth_headers()
+                )
+                response.raise_for_status()
+                return response.json()
+        except Exception as e:
+            return f"There was an issue trying to make the API Request: {e}"
+        
+        
     @CaravelRegistry.register(is_async=True)
     async def patch(self, route, params):
         if "patch" not in self.allowed_methods:
@@ -57,12 +92,6 @@ class Client:
         if route not in self.restricted_routes:
             return
         pass
-
-    def set_auth_headers(self, auth_headers:dict={}):
-        self.auth_headers = auth_headers
-        
-    def get_auth_headers(self):
-        return self.auth_headers
             
     def add_function(self, name: str, func: Callable, is_async: bool = False):
         self.functions[name] = func

@@ -7,7 +7,7 @@ class Parser:
     def __init__(self):
         self.api_dictionary = dict()
 
-    def _clean_description(self, desc):
+    def _clean_markdown(self, desc):
         '''
         Cleans up the OpenAPI description by removing unwanted markdown formatting.
         '''
@@ -19,66 +19,197 @@ class Parser:
         desc = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1 (\2)", desc)
         return desc
 
-    def create_api_dictionary(self, openapi_dict, cleanup_markdown=True, first_sentence=True, reformat=False):
-        '''
-        Parses an OpenAPI JSON Spec and extracts key details for each path.
-        
-        Args:
-            openapi_json (dict): The OpenAPI spec as a dict.
-        
-        Returns:
-            dict: A dictionary with paths as keys and the other info as values.
-        '''
 
-        parsed_data = dict()
-        paths = openapi_dict.get("paths", {})
-        
-        for path, methods in paths.items():
+    def create_api_dictionary(self, openapi_dict, cleanup_markdown=True, first_sentence=True, reformat=False):
+        # print(openapi_dict)
+        # print(openapi_dict.keys())
+        # print(openapi_dict.get("paths"))
+        for path, methods in openapi_dict.get("paths", {}).items():
+            print("Path: ", path)
             for method, details in methods.items():
-                # Only concerned with CRUD ops
-                if method not in ["get", "post", "put", "delete", "patch"]:
+                print("method: ", method)
+                if method.lower() not in ["put", "patch", "get", "post", "delete"]:
                     continue
                 
-                # Extraction
-                description = details.get("description", "N/A")
-                required = []
+                # this will get query & path params
+                pq_params = method.get("parameters")
+                
+                description = details.get("description", "N/A").strip()
+                print("Description: ", description)
+                
+                description = self._clean_markdown(desc=description).split(".")[0] + '.'
+                print("Cleaned description: ", description)
+                
                 request_example = None
+                required_params = []
                 
+                print("example and required inited: ", request_example, required_params)
                 
-                parameters = details.get("parameters", [])
-                if parameters:
-                    print("PARAM:", parameters)
-                for param in parameters:
-                    if param.get("required", False):
-                        required.append(param["name"])
-                
-                request_body = details.get("requestBody", {})
-                if request_body:
-                    print("REQ:",request_body)
-                content = request_body.get("content", {})
-                if "application/json" in content:
-                    examples = content["application/json"].get("example") or content["application/json"].get("examples", {})
-                    request_example = examples if examples else None
-                
-                if cleanup_markdown:          
-                    description = self._clean_description(description)
-                if first_sentence:
-                    description = description.split(".")[0] + "."
-                if reformat:
-                    raise Exception("LLM Description Reformatting has not yet been implemented.")
-            
-                if parsed_data.get(f"{description}", False):
-                    raise Exception("This key is already here.")
-                            
-                parsed_data[f"{method.upper()} {description}"] = {
-                    "path": path,
-                    "request_example": request_example,
-                    "required": required
-                } # parsed_data
+                if "requestBody" in details:
+                    print("requestBody found in details")
+                    content = details["requestBody"].get("content", {})
+                    print("content from requestBody: ", content)
+                    if "application/json" in content:
+                        print("application/json present in content")
+                        example_data = content["application/json"].get("example")
+                        examples_data = content["application/json"].get("examples", {}).values()
+
+                        if example_data:
+                            print("Example data:", example_data)
+                            request_example = example_data
+                        elif examples_data:
+                            print("Example data", examples_data[0].get("value"))
+                            request_example = examples_data[0].get("value")
+
+                        properties = content["application/json"].get('schema').get("properties")
                         
-        self.api_dictionary = parsed_data
-        return parsed_data
+                    if "parameters" in details:
+                        print('"parameters" in details')
+                        required_params = [
+                            param["name"] for param in details["parameters"] if param.get("required", False)
+                        ]
+                        print("required params: ", required_params)
+                    key = f"{method.upper()} {description}"
+                    self.api_dictionary[key] = {
+                        "path": path,
+                        "parameters": pq_params,
+                        "properties": properties,
+                        "request_example": request_example,
+                        "required": required_params
+                    }
+        return "Success"
+
+# NEELS code
+    # def create_api_dictionary_from_json(self, openapi_dict, cleanup_markdown=True, first_sentence=True, reformat=False):
+    #     '''
+    #     Parses an OpenAPI JSON Spec and extracts key details for each path.
+        
+    #     Args:
+    #         openapi_json (dict): The OpenAPI spec as a dict.
+        
+    #     Returns:
+    #         dict: A dictionary with paths as keys and the other info as values.
+    #     '''
+
+    #     parsed_data = dict()
+    #     paths = openapi_dict.get("paths", {})
+        
+    #     for path, methods in paths.items():
+    #         for method, details in methods.items():
+    #             # Only concerned with CRUD ops
+    #             if method not in ["get", "post", "put", "delete", "patch"]:
+    #                 continue
+                
+    #             # Extraction
+    #             description = details.get("description", "N/A")
+    #             required = []
+    #             request_example = None
+                
+                
+    #             parameters = details.get("parameters", [])
+    #             if parameters:
+    #                 print("PARAM:", parameters)
+    #             for param in parameters:
+    #                 if param.get("required", False):
+    #                     required.append(param["name"])
+                
+    #             request_body = details.get("requestBody", {})
+    #             if request_body:
+    #                 print("REQ:",request_body)
+    #             content = request_body.get("content", {})
+    #             if "application/json" in content:
+    #                 examples = content["application/json"].get("example") or content["application/json"].get("examples", {})
+    #                 request_example = examples if examples else None
+                
+    #             if cleanup_markdown:          
+    #                 description = self._clean_description(description)
+    #             if first_sentence:
+    #                 description = description.split(".")[0] + "."
+    #             if reformat:
+    #                 raise Exception("LLM Description Reformatting has not yet been implemented.")
+            
+    #             if parsed_data.get(f"{description}", False):
+    #                 raise Exception("This key is already here.")
+                            
+    #             parsed_data[f"{method.upper()} {description}"] = {
+    #                 "path": path,
+    #                 "request_example": request_example,
+    #                 "required": required
+    #             } # parsed_data
+                        
+    #     self.api_dictionary = parsed_data
+    #     return parsed_data
+        
+    # def get_schema_properties(self, ref_path, yaml_data, visited_refs=None):
+        
+    #     if visited_refs is None:
+    #         visited_refs = set()
+
+    #     if not isinstance(ref_path, str) or not ref_path.startswith("#/ components/schemas/"):
+    #         return {"error": "Invalid $ref path"}
+
+    #     schema_name = ref_path.rsplit("/", 1)[-1]
+
+    #     if schema_name in visited_refs:
+    #         return {"error": "Circular reference detected", "schema":   schema_name}
+
+    #     while True:
+    #         if schema_name in visited_refs:
+    #             return {"error": "Circular reference detected", "schema":   schema_name}
+
+    #         visited_refs.add(schema_name)
+    #         schema = yaml_data.get("components", {}).get("schemas", {}).    get(schema_name)
+
+    #         if not isinstance(schema, dict):
+    #             return {"schema": schema_name, "properties": "No    properties found"}
+
+    #         if "properties" in schema:
+    #             return {"schema": schema_name, "properties": schema ["properties"]}
+
+    #         ref_path = schema.get("$ref")
+    #         if not ref_path:
+    #             return {"schema": schema_name, "properties": "No    properties found"}
+
+    #         schema_name = ref_path.rsplit("/", 1)[-1]
     
+    
+    # def extract_yaml(self, api_dict = {}, yaml_data = None):
+    #     for path, methods in yaml_data.get("paths", {}).items():
+    #         for method, details in methods.items():
+    #             method_upper = method.upper()  # Convert HTTP method to     uppercase
+
+    #             if method_upper not in api_dict:
+    #                 api_dict[method_upper] = {}
+
+    #             # Initialize API path entry
+    #             api_dict[method_upper][path] = {
+    #                 "description": details.get("description", "No   description available"),
+    #                 "request_body_example": None  # Default value for   request body
+    #             }
+
+    #             # Check for request body example (for POST and PATCH    requests)
+    #             if method_upper in ["POST", "PUT", "PATCH", "DELETE"] and   "requestBody" in details:
+    #                 content = details["requestBody"].get("content", {})
+    #                 if "required" in content["application/json"]    ["schema"].keys():
+    #                     # print(content["application/json"]["schema"]   ["required"])
+    #                     api_dict[method_upper][path]["required"] = content  ["application/json"]["schema"]["required"]
+    #                 if "properties" in content["application/json"]  ["schema"].keys():
+    #                     api_dict[method_upper][path]    ["request_body_example"] = content["application/    json"]["schema"]["properties"]
+    #                 elif "$ref" in content["application/json"]["schema"].   keys() and "properties" not in content["application/   json"]["schema"].keys():
+    #                     properties = self.get_schema_properties(content  ["application/json"]["schema"]["$ref"],   yaml_data=yaml_data)
+    #                     api_dict[method_upper][path]    ["request_body_example"] = properties
+
+    #                 for content_type, content_details in content.items():
+    #                     # Check if 'example' is directly provided
+    #                     if "requestBody" in content_details:
+    #                         api_dict[method_upper][path]    ["request_body_example"] = content_details  ["requestBody"]
+    #                     # Check inside 'schema' for an example
+    #                     elif "schema" in content_details and "example" in   content_details["schema"]:
+    #                         api_dict[method_upper][path]    ["request_body_example"] = content_details  ["schema"]["example"]
+
+    #     return api_dict   
+###
+
     def get_api_dictionary(self):
         '''
         Returns the entire API dictionary.
