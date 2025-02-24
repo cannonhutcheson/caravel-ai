@@ -165,6 +165,29 @@ class BamlAsyncClient:
       )
       return cast(str, raw.cast_to(types, types, partial_types, False))
     
+    async def MakePath(
+        self,
+        path: str,user_input: str,
+        baml_options: BamlCallOptions = {},
+    ) -> str:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = await self.__runtime.call_function(
+        "MakePath",
+        {
+          "path": path,"user_input": user_input,
+        },
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+      return cast(str, raw.cast_to(types, types, partial_types, False))
+    
 
 
 class BamlStreamClient:
@@ -315,6 +338,37 @@ class BamlStreamClient:
         {
           "intents": intents,
           "intent": intent,
+        },
+        None,
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+
+      return baml_py.BamlStream[Optional[str], str](
+        raw,
+        lambda x: cast(Optional[str], x.cast_to(types, types, partial_types, True)),
+        lambda x: cast(str, x.cast_to(types, types, partial_types, False)),
+        self.__ctx_manager.get(),
+      )
+    
+    def MakePath(
+        self,
+        path: str,user_input: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlStream[Optional[str], str]:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = self.__runtime.stream_function(
+        "MakePath",
+        {
+          "path": path,
+          "user_input": user_input,
         },
         None,
         self.__ctx_manager.get(),
