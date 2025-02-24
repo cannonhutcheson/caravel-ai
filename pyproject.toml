@@ -1,21 +1,12 @@
 [project]
 name = "caravel"
-version = "0.1.0"
+version = "0.0.1"
 description = ""
 authors = [
     {name = "cannonhutcheson",email = "cmh96658@uga.edu"}
 ]
-description="A Python package for creating Agentic AI."
 readme = "README.md"
 requires-python = ">=3.11"
-classifiers=[
-    "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent",
-]
-license = "MIT"
-license-file = "LICENSE"
-[project.urls]
-homepage = "https://github.com/cannonhutcheson/caravel-ai"
 dependencies = [
     "httpx (>=0.28.1,<0.29.0)",
     "baml-py (>=0.76.2,<0.77.0)",
@@ -27,6 +18,13 @@ dependencies = [
 [tool.poetry]
 packages = [{include = "caravel", from = "src"}]
 
+[tool.poetry.dependencies]
+python = ">=3.11"
+httpx = ">=0.28.1,<0.29.0"
+baml-py = ">=0.76.2,<0.77.0"
+pydantic = ">=2.10.6,<3.0.0"
+pyyaml = ">=6.0.2,<7.0.0"
+dotenv = ">=0.9.9,<0.10.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
@@ -35,8 +33,3 @@ coverage = "^7.6.12"
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["src"]
-
