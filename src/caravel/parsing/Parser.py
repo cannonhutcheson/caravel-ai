@@ -32,7 +32,7 @@ class Parser:
                     continue
                 
                 # this will get query & path params
-                pq_params = method.get("parameters")
+                pq_params = methods.get("parameters")
                 
                 description = details.get("description", "N/A").strip()
                 print("Description: ", description)
@@ -42,7 +42,7 @@ class Parser:
                 
                 request_example = None
                 required_params = []
-                
+                properties={}
                 print("example and required inited: ", request_example, required_params)
                 
                 if "requestBody" in details:
@@ -61,22 +61,22 @@ class Parser:
                             print("Example data", examples_data[0].get("value"))
                             request_example = examples_data[0].get("value")
 
-                        properties = content["application/json"].get('schema').get("properties")
+                        properties = content["application/json"].get('schema', {}).get("properties", {})
                         
-                    if "parameters" in details:
-                        print('"parameters" in details')
-                        required_params = [
-                            param["name"] for param in details["parameters"] if param.get("required", False)
-                        ]
-                        print("required params: ", required_params)
-                    key = f"{method.upper()} {description}"
-                    self.api_dictionary[key] = {
-                        "path": path,
-                        "parameters": pq_params,
-                        "properties": properties,
-                        "request_example": request_example,
-                        "required": required_params
-                    }
+                if "parameters" in details:
+                    print('"parameters" in details')
+                    required_params = [
+                        param["name"] for param in details["parameters"] if param.get("required", False)
+                    ]
+                    print("required params: ", required_params)
+                key = f"{method.upper()} {description}"
+                self.api_dictionary[key] = {
+                    "path": path,
+                    "parameters": pq_params,
+                    "properties": properties,
+                    "request_example": request_example,
+                    "required": required_params
+                }
         return "Success"
 
 # NEELS code
