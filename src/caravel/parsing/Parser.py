@@ -32,7 +32,7 @@ class Parser:
                     continue
                 
                 # this will get query & path params
-                pq_params = methods.get("parameters")
+                pq_params = methods.get("parameters", [])
                 
                 description = details.get("description", "N/A").strip()
                 print("Description: ", description)
