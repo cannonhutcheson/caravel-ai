@@ -34,7 +34,7 @@ class Parser:
     # make a more generic signature here
     
     def map_paths_to_desc(self, openapi_spec: dict) -> dict:
-        path_map = dict()
+        
         for path, methods in openapi_spec["paths"].items():
             for method, details in methods.items():
                 desc = details.get("summary", details.get("description", path))
@@ -42,35 +42,35 @@ class Parser:
                 desc = self._clean_markdown(desc)
                 formatted_key = f"{method.upper()} {desc}"
 
-                path_map[formatted_key] = path
+                self.path_map[formatted_key] = path
                 
-        return path_map
+        return self.path_map
     
     
     
-    def resolve_ref(self, ref_path: str, openapi_spec: dict) -> dict:
+    def resolve_ref(self, ref_path: str) -> dict:
         keys = ref_path.lstrip("#/").split("/")
-        schema = openapi_spec
+        schema = self.openapi_spec
         
         for key in keys:
             schema = schema.get(key, {})
             
         if "$ref" in schema:
-            return self.resolve_ref(schema["$ref"], openapi_spec)
+            return self.resolve_ref(schema["$ref"], self.openapi_spec)
         
         return schema
 
-    def extract_query_param_defaults(self, openapi_spec: dict, path: str, method: str) -> dict:
+    def extract_query_param_defaults(self, path: str, method: str) -> dict:
         query_param_defaults = {}
         
         query_params_schema = [
-            p for p in openapi_spec["paths"][path][method]["parameters"] if p["in"] == "query"
+            p for p in self.openapi_spec["paths"][path][method]["parameters"] if p["in"] == "query"
         ]
         
         def get_default_value(schema):
             
             if "$ref" in schema:
-                schema = self.resolve_ref(schema["$ref"], openapi_spec)
+                schema = self.resolve_ref(schema["$ref"], self.openapi_spec)
                 
             if "enum" in schema:
                 return " | ".join(schema["enum"])
@@ -80,7 +80,7 @@ class Parser:
                 # return {"oneOf": resolved_options}
                 possible_keys = []
                 for option in schema["oneOf"]:
-                    resolved = self.resolve_ref(option["$ref"], openapi_spec) if "$ref" in option else option
+                    resolved = self.resolve_ref(option["$ref"], self.openapi_spec) if "$ref" in option else option
                     if "properties" in resolved:
                         possible_keys.extend(resolved["properties"].keys())
                 return possible_keys
