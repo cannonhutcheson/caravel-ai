@@ -47,6 +47,97 @@ class Parser:
         return path_map
     
     
+    
+    def resolve_ref(self, ref_path: str, openapi_spec: dict) -> dict:
+        keys = ref_path.lstrip("#/").split("/")
+        schema = openapi_spec
+        
+        for key in keys:
+            schema = schema.get(key, {})
+            
+        if "$ref" in schema:
+            return self.resolve_ref(schema["$ref"], openapi_spec)
+        
+        return schema
+
+    def extract_query_param_defaults(self, openapi_spec: dict, path: str, method: str) -> dict:
+        query_param_defaults = {}
+        
+        query_params_schema = [
+            p for p in openapi_spec["paths"][path][method]["parameters"] if p["in"] == "query"
+        ]
+        
+        def get_default_value(schema):
+            
+            if "$ref" in schema:
+                schema = self.resolve_ref(schema["$ref"], openapi_spec)
+                
+            if "enum" in schema:
+                return " | ".join(schema["enum"])
+            
+            if "oneOf" in schema:
+                # resolved_options = [resolve_ref(option["$ref"], openapi_spec) for option in schema["oneOf"]]
+                # return {"oneOf": resolved_options}
+                possible_keys = []
+                for option in schema["oneOf"]:
+                    resolved = self.resolve_ref(option["$ref"], openapi_spec) if "$ref" in option else option
+                    if "properties" in resolved:
+                        possible_keys.extend(resolved["properties"].keys())
+                return possible_keys
+            
+            if "default" in schema:
+                return schema["default"]            
+            
+            schema_type = schema.get("type")
+            print(f"{schema_type}")
+            if schema_type == "string":
+                return "<string>"
+            elif schema_type == "integer":
+                return 0 # needs to be @ least 1 for pagination
+            elif schema_type == "boolean":
+                return [True, False]
+            elif schema_type == "number":
+                return 0.0
+            elif schema_type == "array":
+                return ["<array>"]
+            elif schema_type == "object":
+                return {
+                    key: get_default_value(value) for key, value in schema.get("properties", {}).items()
+                }
+            return None
+        
+        # populating
+        for param in query_params_schema:
+            name = param["name"]
+            schema = param.get("schema", {})
+            # query_param_defaults[name] = get_default_value(schema)
+            possible_vals = get_default_value(schema)
+            ### handle oneOf here
+            if "oneOf" in schema:
+                query_param_defaults[name] = " | ".join(possible_vals)
+            else:
+                query_param_defaults[name] = possible_vals
+            
+            
+        return query_param_defaults
+
+
+    def flatten_query_params(self, params: dict, prefix: str="") -> dict:
+        flat_params = {}
+        for key, value in params.items():
+            full_key = f"{prefix}[{key}]" if prefix else key
+            
+            if isinstance(value, dict):
+                flat_params.update(self.flatten_query_params(value, full_key))
+            elif isinstance(value, list):
+                flat_params[full_key] = " | ".join(map(str, value))
+            else:
+                flat_params[full_key] = value
+                
+        return flat_params
+
+    
+    
 
 
 # LEGACY -------------------------------
