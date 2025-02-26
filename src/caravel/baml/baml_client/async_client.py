@@ -50,6 +50,29 @@ class BamlAsyncClient:
 
 
     
+    async def ConstructAPIRequest(
+        self,
+        path: str,params: str,request_body: str,
+        baml_options: BamlCallOptions = {},
+    ) -> types.APIRequest:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = await self.__runtime.call_function(
+        "ConstructAPIRequest",
+        {
+          "path": path,"params": params,"request_body": request_body,
+        },
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+      return cast(types.APIRequest, raw.cast_to(types, types, partial_types, False))
+    
     async def CreateAPIRequestBody(
         self,
         schema: types.RequestBody,user_prompt: str,
@@ -95,6 +118,52 @@ class BamlAsyncClient:
         __cr__,
       )
       return cast(str, raw.cast_to(types, types, partial_types, False))
+    
+    async def ExtractQueryParamsFormat(
+        self,
+        params: List[str],required: List[str],
+        baml_options: BamlCallOptions = {},
+    ) -> types.RequestDataStorage:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = await self.__runtime.call_function(
+        "ExtractQueryParamsFormat",
+        {
+          "params": params,"required": required,
+        },
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+      return cast(types.RequestDataStorage, raw.cast_to(types, types, partial_types, False))
+    
+    async def ExtractReqBodyFormat(
+        self,
+        req_body_json: str,required_req: List[str],
+        baml_options: BamlCallOptions = {},
+    ) -> types.RequestDataStorage:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = await self.__runtime.call_function(
+        "ExtractReqBodyFormat",
+        {
+          "req_body_json": req_body_json,"required_req": required_req,
+        },
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+      return cast(types.RequestDataStorage, raw.cast_to(types, types, partial_types, False))
     
     async def ExtractRequestBodySchema(
         self,
@@ -188,6 +257,75 @@ class BamlAsyncClient:
       )
       return cast(str, raw.cast_to(types, types, partial_types, False))
     
+    async def MapContextToParams(
+        self,
+        context: str,
+        baml_options: BamlCallOptions = {},
+    ) -> Dict[str, str]:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = await self.__runtime.call_function(
+        "MapContextToParams",
+        {
+          "context": context,
+        },
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+      return cast(Dict[str, str], raw.cast_to(types, types, partial_types, False))
+    
+    async def PopulateQueryParameters(
+        self,
+        fmt: Dict[str, str],context: str,
+        baml_options: BamlCallOptions = {},
+    ) -> Dict[str, str]:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = await self.__runtime.call_function(
+        "PopulateQueryParameters",
+        {
+          "fmt": fmt,"context": context,
+        },
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+      return cast(Dict[str, str], raw.cast_to(types, types, partial_types, False))
+    
+    async def PopulateRequestBody(
+        self,
+        req_body_format: types.RequestDataStorage,context: str,
+        baml_options: BamlCallOptions = {},
+    ) -> str:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = await self.__runtime.call_function(
+        "PopulateRequestBody",
+        {
+          "req_body_format": req_body_format,"context": context,
+        },
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+      return cast(str, raw.cast_to(types, types, partial_types, False))
+    
 
 
 class BamlStreamClient:
@@ -198,6 +336,38 @@ class BamlStreamClient:
       self.__runtime = runtime
       self.__ctx_manager = ctx_manager
 
+    
+    def ConstructAPIRequest(
+        self,
+        path: str,params: str,request_body: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlStream[partial_types.APIRequest, types.APIRequest]:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = self.__runtime.stream_function(
+        "ConstructAPIRequest",
+        {
+          "path": path,
+          "params": params,
+          "request_body": request_body,
+        },
+        None,
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+
+      return baml_py.BamlStream[partial_types.APIRequest, types.APIRequest](
+        raw,
+        lambda x: cast(partial_types.APIRequest, x.cast_to(types, types, partial_types, True)),
+        lambda x: cast(types.APIRequest, x.cast_to(types, types, partial_types, False)),
+        self.__ctx_manager.get(),
+      )
     
     def CreateAPIRequestBody(
         self,
@@ -258,6 +428,68 @@ class BamlStreamClient:
         raw,
         lambda x: cast(Optional[str], x.cast_to(types, types, partial_types, True)),
         lambda x: cast(str, x.cast_to(types, types, partial_types, False)),
+        self.__ctx_manager.get(),
+      )
+    
+    def ExtractQueryParamsFormat(
+        self,
+        params: List[str],required: List[str],
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlStream[partial_types.RequestDataStorage, types.RequestDataStorage]:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = self.__runtime.stream_function(
+        "ExtractQueryParamsFormat",
+        {
+          "params": params,
+          "required": required,
+        },
+        None,
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+
+      return baml_py.BamlStream[partial_types.RequestDataStorage, types.RequestDataStorage](
+        raw,
+        lambda x: cast(partial_types.RequestDataStorage, x.cast_to(types, types, partial_types, True)),
+        lambda x: cast(types.RequestDataStorage, x.cast_to(types, types, partial_types, False)),
+        self.__ctx_manager.get(),
+      )
+    
+    def ExtractReqBodyFormat(
+        self,
+        req_body_json: str,required_req: List[str],
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlStream[partial_types.RequestDataStorage, types.RequestDataStorage]:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = self.__runtime.stream_function(
+        "ExtractReqBodyFormat",
+        {
+          "req_body_json": req_body_json,
+          "required_req": required_req,
+        },
+        None,
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+
+      return baml_py.BamlStream[partial_types.RequestDataStorage, types.RequestDataStorage](
+        raw,
+        lambda x: cast(partial_types.RequestDataStorage, x.cast_to(types, types, partial_types, True)),
+        lambda x: cast(types.RequestDataStorage, x.cast_to(types, types, partial_types, False)),
         self.__ctx_manager.get(),
       )
     
@@ -369,6 +601,98 @@ class BamlStreamClient:
         {
           "path": path,
           "user_input": user_input,
+        },
+        None,
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+
+      return baml_py.BamlStream[Optional[str], str](
+        raw,
+        lambda x: cast(Optional[str], x.cast_to(types, types, partial_types, True)),
+        lambda x: cast(str, x.cast_to(types, types, partial_types, False)),
+        self.__ctx_manager.get(),
+      )
+    
+    def MapContextToParams(
+        self,
+        context: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlStream[Dict[str, Optional[str]], Dict[str, str]]:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = self.__runtime.stream_function(
+        "MapContextToParams",
+        {
+          "context": context,
+        },
+        None,
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+
+      return baml_py.BamlStream[Dict[str, Optional[str]], Dict[str, str]](
+        raw,
+        lambda x: cast(Dict[str, Optional[str]], x.cast_to(types, types, partial_types, True)),
+        lambda x: cast(Dict[str, str], x.cast_to(types, types, partial_types, False)),
+        self.__ctx_manager.get(),
+      )
+    
+    def PopulateQueryParameters(
+        self,
+        fmt: Dict[str, str],context: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlStream[Dict[str, Optional[str]], Dict[str, str]]:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = self.__runtime.stream_function(
+        "PopulateQueryParameters",
+        {
+          "fmt": fmt,
+          "context": context,
+        },
+        None,
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+
+      return baml_py.BamlStream[Dict[str, Optional[str]], Dict[str, str]](
+        raw,
+        lambda x: cast(Dict[str, Optional[str]], x.cast_to(types, types, partial_types, True)),
+        lambda x: cast(Dict[str, str], x.cast_to(types, types, partial_types, False)),
+        self.__ctx_manager.get(),
+      )
+    
+    def PopulateRequestBody(
+        self,
+        req_body_format: types.RequestDataStorage,context: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlStream[Optional[str], str]:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = self.__runtime.stream_function(
+        "PopulateRequestBody",
+        {
+          "req_body_format": req_body_format,
+          "context": context,
         },
         None,
         self.__ctx_manager.get(),

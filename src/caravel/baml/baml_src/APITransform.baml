@@ -1,3 +1,5 @@
+
+///
 class RequestBody {
   required string[] @description(#"
     The list of required parameters. It will appear in an array at the end of JSON.
@@ -22,7 +24,7 @@ function ExtractRequestBodySchema(req_body_json: string) -> RequestBody {
   "#
 } // ExtractRequestBody
 
-class APIRequest {
+class APIRequestFormer {
   params map<string, string> @description(#"
     A mapping of the parameters to their associated values based on user input. Should contain all required values (empty if not given). Do not include nonpopulated, nonrequired values.
   "#)
@@ -367,3 +369,4 @@ test api_req_body {
 }
 
 
+///

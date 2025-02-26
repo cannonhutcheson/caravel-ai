@@ -12,6 +12,25 @@ function GetIntent(intents: string[], intent: string) -> string @description(#"
     "#
 } // GetIntent
 
+
+function MapContextToParams(context: string) -> map<string, string> {
+    client "openai/gpt-4o-mini"
+    prompt #"
+        Parametrize the context:
+        {{ context }}
+        Such that a mapping is created between the parameters given in the context and their values.
+
+        {{ ctx.output_format }}
+    "#
+}
+
+test map_ctx {
+    functions [MapContextToParams]
+    args {
+        context "I want to add a new vehicle to fleetio. The name is cannons truck, the vehicles type id is 10, the unit metrics are miles, and the status id is 20. "
+    }
+}
+
 test get_intent {
     functions [GetIntent]
     args {

@@ -35,9 +35,21 @@ class StreamState(BaseModel, Generic[T]):
 
 
 class APIRequest(BaseModel):
+    path: Optional[str] = None
+    params: Optional[str] = None
+    request_body: Optional[str] = None
+
+class APIRequestFormer(BaseModel):
     params: Dict[str, Optional[str]]
 
 class RequestBody(BaseModel):
+    """"""
+    required: List[str]
+    required_types: List[str]
+    all_params: List[str]
+    all_types: List[str]
+
+class RequestDataStorage(BaseModel):
     required: List[str]
     required_types: List[str]
     all_params: List[str]

@@ -41,9 +41,21 @@ def all_succeeded(checks: Dict[CheckName, Check]) -> bool:
 
 
 class APIRequest(BaseModel):
+    path: str
+    params: str
+    request_body: str
+
+class APIRequestFormer(BaseModel):
     params: Dict[str, str]
 
 class RequestBody(BaseModel):
+    """"""
+    required: List[str]
+    required_types: List[str]
+    all_params: List[str]
+    all_types: List[str]
+
+class RequestDataStorage(BaseModel):
     required: List[str]
     required_types: List[str]
     all_params: List[str]
