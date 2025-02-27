@@ -14,7 +14,7 @@ function MakePath(path: string, user_input: string) -> string @description(#"
         {{ user_input }}
         If the parameter cannot be inferred, return:
         {{ NoParamProvided() }}
-         If no path parameter exists within {{ path }}, return:
+         If no path parameter exists within {{ path }}, return only:
         {{ path }}
         {{ ctx.output_format }}
     "#

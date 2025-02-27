@@ -86,10 +86,10 @@ class APIRequest {
     path string @description(#"
         This is the path that will be attached to the base URL in order to make the API Request.
     "#)
-    params string @description(#"
-        This will be the query parameters of the path. 
+    params map<string, string> @description(#"
+        The query parameters that will be used in the request.
     "#)
-    request_body string
+    request_body string?
 } // APIRequest
 
 function ExtractReqBodyFormat(req_body_json: string, required_req: string[]) -> RequestDataStorage {
@@ -103,13 +103,16 @@ function ExtractReqBodyFormat(req_body_json: string, required_req: string[]) -> 
 } // ExtractReqBodyFormat
 
 
+// map<string, string> works here because query paramas are ALWAYS strs
 function PopulateQueryParameters(fmt: map<string, string>, context: string) -> map<string, string> {
     client "openai/gpt-4o-mini"
     prompt #"
+        DO NOT HALLUCINATE QUERY PARAMS NOT IN {{ fmt }}
+
         Using the following query parameter structure:
         {{ fmt }}
         And the provided context: {{ context }},
-        Complete the query parameters.
+        Complete the query parameters. If the query param structure is empty, return {{ fmt }}
         {{ ctx.output_format }}
     "#
 } // newPopulateQP

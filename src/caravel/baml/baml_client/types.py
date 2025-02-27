@@ -45,8 +45,8 @@ class DynamicJsonEnum(str, Enum):
 
 class APIRequest(BaseModel):
     path: str
-    params: str
-    request_body: str
+    params: Dict[str, str]
+    request_body: Optional[str] = None
 
 class APIRequestFormer(BaseModel):
     params: Dict[str, str]

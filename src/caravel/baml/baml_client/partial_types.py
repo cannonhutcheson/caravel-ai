@@ -36,7 +36,7 @@ class StreamState(BaseModel, Generic[T]):
 
 class APIRequest(BaseModel):
     path: Optional[str] = None
-    params: Optional[str] = None
+    params: Dict[str, Optional[str]]
     request_body: Optional[str] = None
 
 class APIRequestFormer(BaseModel):
