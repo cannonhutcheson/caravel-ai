@@ -1,7 +1,8 @@
 
 import json
+from typing import List
 from src.caravel.baml.baml_client.async_client import b
-from src.caravel.baml.baml_client.types import APIRequest, RequestBody
+from src.caravel.baml.baml_client.types import APIRequest, RequestBody, RequestDataStorage
 from src.caravel.parsing import Parser
 import os
 import dotenv
@@ -23,6 +24,19 @@ class BamlRunner:
         return response
     
     @staticmethod
+    async def extract_req_body_format(req_body_json: str, required_req: List[str]) -> RequestDataStorage:
+        response = await b.ExtractReqBodyFormat(req_body_json, required_req)
+        return response
+     
+    @staticmethod
+    async def extract_query_params_format(params: List[str], required: List[str]) -> RequestDataStorage:
+        response = await b.ExtractQueryParamsFormat(
+            params,
+            required
+        )
+        return response
+        
+    @staticmethod
     async def get_request_body(raw_json: str) -> RequestBody:
         response = await b.ExtractRequestBodySchema(raw_json)
         return response
@@ -36,6 +50,22 @@ class BamlRunner:
     async def get_intent(intents: list[str], intent) -> str:
         response = await b.GetIntent(intents, intent)
         return response
+
+    @staticmethod
+    async def populate_request_body(req_body_fmt: RequestDataStorage, context: str) -> str:
+        try:
+            response = await b.PopulateRequestBody(req_body_fmt, context)
+            return response
+        except Exception:
+            raise Exception("BamlRunner.populate_request_body: There was an error trying to populate request body.")
+        
+    @staticmethod
+    async def populate_query_parameters(query_param_fmt: RequestDataStorage, context: str) -> str:
+        try:
+            response = await b.PopulateQueryParameters(query_param_fmt, context)
+            return response
+        except Exception:
+            raise Exception("BamlRunner.populate_query_parameters: an error occurred")
 
     async def construct_api_request(self, user_prompt: str) -> str:
         try:

@@ -2,7 +2,7 @@
 #
 #  Welcome to Baml! To use this generated code, please run the following:
 #
-#  $ pip install baml
+#  $ pip install baml-py
 #
 ###############################################################################
 
@@ -40,6 +40,9 @@ def all_succeeded(checks: Dict[CheckName, Check]) -> bool:
 
 
 
+class DynamicJsonEnum(str, Enum):
+    pass
+
 class APIRequest(BaseModel):
     path: str
     params: str
@@ -47,6 +50,9 @@ class APIRequest(BaseModel):
 
 class APIRequestFormer(BaseModel):
     params: Dict[str, str]
+
+class DynamicJsonObject(BaseModel):
+    model_config = ConfigDict(extra='allow')
 
 class RequestBody(BaseModel):
     """"""

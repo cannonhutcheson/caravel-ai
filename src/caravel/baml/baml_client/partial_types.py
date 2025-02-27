@@ -2,7 +2,7 @@
 #
 #  Welcome to Baml! To use this generated code, please run the following:
 #
-#  $ pip install baml
+#  $ pip install baml-py
 #
 ###############################################################################
 
@@ -41,6 +41,9 @@ class APIRequest(BaseModel):
 
 class APIRequestFormer(BaseModel):
     params: Dict[str, Optional[str]]
+
+class DynamicJsonObject(BaseModel):
+    model_config = ConfigDict(extra='allow')
 
 class RequestBody(BaseModel):
     """"""

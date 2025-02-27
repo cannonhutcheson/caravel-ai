@@ -2,7 +2,7 @@
 #
 #  Welcome to Baml! To use this generated code, please run the following:
 #
-#  $ pip install baml
+#  $ pip install baml-py
 #
 ###############################################################################
 
@@ -115,6 +115,29 @@ class BamlSyncClient:
         __cr__,
       )
       return cast(str, raw.cast_to(types, types, partial_types, False))
+    
+    def DynamicGenerateReqBody(
+        self,
+        context: str,
+        baml_options: BamlCallOptions = {},
+    ) -> types.DynamicJsonObject:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = self.__runtime.call_function_sync(
+        "DynamicGenerateReqBody",
+        {
+          "context": context,
+        },
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+      return cast(types.DynamicJsonObject, raw.cast_to(types, types, partial_types, False))
     
     def ExtractQueryParamsFormat(
         self,
@@ -302,7 +325,7 @@ class BamlSyncClient:
     
     def PopulateRequestBody(
         self,
-        req_body_format: types.RequestDataStorage,context: str,
+        fmt: str,required: List[str],context: str,date: str,
         baml_options: BamlCallOptions = {},
     ) -> str:
       __tb__ = baml_options.get("tb", None)
@@ -315,7 +338,7 @@ class BamlSyncClient:
       raw = self.__runtime.call_function_sync(
         "PopulateRequestBody",
         {
-          "req_body_format": req_body_format,"context": context,
+          "fmt": fmt,"required": required,"context": context,"date": date,
         },
         self.__ctx_manager.get(),
         tb,
@@ -426,6 +449,36 @@ class BamlStreamClient:
         raw,
         lambda x: cast(Optional[str], x.cast_to(types, types, partial_types, True)),
         lambda x: cast(str, x.cast_to(types, types, partial_types, False)),
+        self.__ctx_manager.get(),
+      )
+    
+    def DynamicGenerateReqBody(
+        self,
+        context: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlSyncStream[partial_types.DynamicJsonObject, types.DynamicJsonObject]:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = self.__runtime.stream_function_sync(
+        "DynamicGenerateReqBody",
+        {
+          "context": context,
+        },
+        None,
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+
+      return baml_py.BamlSyncStream[partial_types.DynamicJsonObject, types.DynamicJsonObject](
+        raw,
+        lambda x: cast(partial_types.DynamicJsonObject, x.cast_to(types, types, partial_types, True)),
+        lambda x: cast(types.DynamicJsonObject, x.cast_to(types, types, partial_types, False)),
         self.__ctx_manager.get(),
       )
     
@@ -676,7 +729,7 @@ class BamlStreamClient:
     
     def PopulateRequestBody(
         self,
-        req_body_format: types.RequestDataStorage,context: str,
+        fmt: str,required: List[str],context: str,date: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.BamlSyncStream[Optional[str], str]:
       __tb__ = baml_options.get("tb", None)
@@ -689,8 +742,10 @@ class BamlStreamClient:
       raw = self.__runtime.stream_function_sync(
         "PopulateRequestBody",
         {
-          "req_body_format": req_body_format,
+          "fmt": fmt,
+          "required": required,
           "context": context,
+          "date": date,
         },
         None,
         self.__ctx_manager.get(),
