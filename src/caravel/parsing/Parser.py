@@ -1,4 +1,5 @@
 import json
+from typing import List, Tuple
 import ruamel.yaml
 from pathlib import Path
 import re
@@ -7,6 +8,8 @@ class Parser:
     def __init__(self):
         self.api_dictionary = dict()
         self.path_map = dict()
+        self.openapi_spec = dict()
+        self.intents = list()
     def _clean_markdown(self, desc):
         '''
         Cleans up the OpenAPI description by removing unwanted markdown formatting.
@@ -18,8 +21,7 @@ class Parser:
         desc = re.sub(r"\n{2,}", " ", desc).strip()
         desc = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1 (\2)", desc)
         return desc
-
-
+    
     def yaml_to_json(self, in_file: str, out_file: str) -> None:
         yml = ruamel.yaml.YAML(typ='safe')
         with open(in_file) as fpi:
@@ -30,16 +32,17 @@ class Parser:
     def json_to_dict(self, in_file: str) -> dict: 
         with open(in_file) as f:
             return json.load(f)
-    
-    # make a more generic signature here
-    
+        
+    def set_openapi_spec(self, spec: dict) -> None:
+        self.openapi_spec = spec        
+                
     def map_paths_to_desc(self, openapi_spec: dict) -> dict:
         
         for path, methods in openapi_spec["paths"].items():
             for method, details in methods.items():
                 desc = details.get("summary", details.get("description", path))
 
-                desc = self._clean_markdown(desc)
+                desc = self._clean_markdown(desc).split(".")[0] + "."
                 formatted_key = f"{method.upper()} {desc}"
 
                 self.path_map[formatted_key] = path
@@ -56,7 +59,7 @@ class Parser:
             schema = schema.get(key, {})
             
         if "$ref" in schema:
-            return self.resolve_ref(schema["$ref"], self.openapi_spec)
+            return self.resolve_ref(schema["$ref"])
         
         return schema
 
@@ -64,7 +67,7 @@ class Parser:
         query_param_defaults = {}
         
         query_params_schema = [
-            p for p in self.openapi_spec["paths"][path][method]["parameters"] if p["in"] == "query"
+            p for p in self.openapi_spec["paths"][path][method].get("parameters", {}) if p.get("in", "") == "query"
         ]
         
         
@@ -88,7 +91,7 @@ class Parser:
     def get_default_value(self, schema):
             
         if "$ref" in schema:
-            schema = self.resolve_ref(schema["$ref"], self.openapi_spec)
+            schema = self.resolve_ref(schema["$ref"])
                 
         if "enum" in schema:
             # typebuilder create enum
@@ -141,14 +144,14 @@ class Parser:
         return flat_params
 
     
-    def extract_request_body(self, openapi_spec: dict, path: str, method: str) -> dict:
+    def extract_request_body(self, openapi_spec: dict, path: str, method: str) -> tuple:
         request_body = openapi_spec["paths"][path][method].get("requestBody", {}).get("content", {})
         schema = request_body.get("application/json", {}).get("schema", {})
         if not schema:
             return {}
 
         required_fields = schema.get("required", {})
-        formatted_body = self.get_default_value(schema, openapi_spec)
+        formatted_body = self.get_default_value(schema)
         return formatted_body, required_fields
 
 
