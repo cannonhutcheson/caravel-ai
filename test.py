@@ -6,48 +6,26 @@ import json
 from src.caravel.baml.baml_client import b
 from src.caravel.baml.baml_client import reset_baml_env_vars
 
+
 import os
 import dotenv
 
 dotenv.load_dotenv()
 reset_baml_env_vars(dict(os.environ))
 
-async def main():
-    # create a Parser
+        
+        
+async def new_main():
+       
     parser = Parser()
-    # create a BamlRunner and link it with a parser
+    json_dict = parser.json_to_dict("output.json")
+    parser.set_openapi_spec(json_dict)
+    parser.map_paths_to_desc(parser.openapi_spec)
+    print(parser.path_map.keys())
     runner = BamlRunner(parser)
-    # create a Client
-    client = Client("Test client", base_url="http://localhost:3000", allowed_methods=["get", "post", "patch", "put", "delete"])
-
-
-    # turning the spec into a dict
-    my_spec = runner.parser.make_openapi_json("/2024-06-30.yaml", "/open_api.json")
-    spec_as_dict = runner.parser.extract_openapi_json("/open_api.json")
-
-    # creating the API dictionary
-    runner.parser.create_api_dictionary(spec_as_dict)
-
-    # getting the API dictionary
-    api_dict = runner.parser.get_api_dictionary()
-    print("API DICT: ", api_dict)
     
-    # getting intent from the runner.
-    intent = await runner.get_intent(list(api_dict.keys()), intent="I want to post a new vehicle to fleetio.")
-    
-    # getting the path from the api dictionary 
-    endpoint = runner.parser.get_api_entry(intent)["path"]
-    print(endpoint)
-
-    print("Request Example: ", runner.parser.get_api_entry(intent)['request_example'])
-    print("Required: ", runner.parser.get_api_entry(intent)['required'])
-    
-    body_structure = await runner.get_request_body(str(f"{runner.parser.get_api_entry(intent)['request_example'], runner.parser.get_api_entry(intent)['required']}"))
-    
-    print(body_structure)
-
-
-    
+    api_request = await runner.construct_api_request(intents=list(parser.path_map.keys()), user_prompt="I want to upload a new vehicle to fleetio. Name it cannons truck, status_id of 2, type id of 3, and primary meter unit of miles")
+    print(api_request)
     
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(new_main())
