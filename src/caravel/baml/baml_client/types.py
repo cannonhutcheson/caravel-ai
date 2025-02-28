@@ -43,8 +43,17 @@ def all_succeeded(checks: Dict[CheckName, Check]) -> bool:
 class DynamicJsonEnum(str, Enum):
     pass
 
+class HTTPMethod(str, Enum):
+    
+    GET = "GET"
+    DELETE = "DELETE"
+    POST = "POST"
+    PATCH = "PATCH"
+    PUT = "PUT"
+
 class APIRequest(BaseModel):
     path: str
+    method: "HTTPMethod"
     params: Dict[str, str]
     request_body: Optional[str] = None
 

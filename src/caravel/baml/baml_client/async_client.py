@@ -305,7 +305,7 @@ class BamlAsyncClient:
     
     async def PopulateQueryParameters(
         self,
-        fmt: Dict[str, str],context: str,
+        fmt: Dict[str, Union[str, int, float, bool]],context: str,
         baml_options: BamlCallOptions = {},
     ) -> Dict[str, str]:
       __tb__ = baml_options.get("tb", None)
@@ -700,7 +700,7 @@ class BamlStreamClient:
     
     def PopulateQueryParameters(
         self,
-        fmt: Dict[str, str],context: str,
+        fmt: Dict[str, Union[str, int, float, bool]],context: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.BamlStream[Dict[str, Optional[str]], Dict[str, str]]:
       __tb__ = baml_options.get("tb", None)

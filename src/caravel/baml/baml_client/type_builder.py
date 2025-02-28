@@ -24,7 +24,7 @@ class TypeBuilder(_TypeBuilder):
         super().__init__(classes=set(
           ["APIRequest","APIRequestFormer","DynamicJsonObject","RequestBody","RequestDataStorage","Resume",]
         ), enums=set(
-          ["DynamicJsonEnum",]
+          ["DynamicJsonEnum","HTTPMethod",]
         ), runtime=DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME)
 
 

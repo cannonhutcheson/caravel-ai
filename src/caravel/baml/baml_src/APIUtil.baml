@@ -82,10 +82,23 @@ class RequestDataStorage {
   "#)
 } // ReqBody
 
+enum HTTPMethod {
+    GET
+    DELETE
+    POST
+    PATCH
+    PUT
+}
+
 class APIRequest {
     path string @description(#"
         This is the path that will be attached to the base URL in order to make the API Request.
     "#)
+    
+    method HTTPMethod @description(#"
+        The HTTP method to be employed by the API Request.
+    "#)
+
     params map<string, string> @description(#"
         The query parameters that will be used in the request.
     "#)
@@ -104,7 +117,7 @@ function ExtractReqBodyFormat(req_body_json: string, required_req: string[]) -> 
 
 
 // map<string, string> works here because query paramas are ALWAYS strs
-function PopulateQueryParameters(fmt: map<string, string>, context: string) -> map<string, string> {
+function PopulateQueryParameters(fmt: map<string, string | int | float | bool>, context: string) -> map<string, string> {
     client "openai/gpt-4o-mini"
     prompt #"
         DO NOT HALLUCINATE QUERY PARAMS NOT IN {{ fmt }}
@@ -112,10 +125,16 @@ function PopulateQueryParameters(fmt: map<string, string>, context: string) -> m
         Using the following query parameter structure:
         {{ fmt }}
         And the provided context: {{ context }},
-        Complete the query parameters. If the query param structure is empty, return {{ fmt }}
+        Complete the query parameters. If the query param structure is empty, return {{ fmt }} with appropriate default values populated.
         {{ ctx.output_format }}
     "#
 } // newPopulateQP
+
+
+// test get_vehicle_qp {
+//     functions [PopulateQueryParameters]
+// }
+
 
 test new_function {
     functions [PopulateQueryParameters]
@@ -140,6 +159,7 @@ test new_function {
         "#
     }
 }
+
 
 test populate_request_body {
     functions [PopulateRequestBody]

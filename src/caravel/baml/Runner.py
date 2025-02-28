@@ -80,22 +80,24 @@ class BamlRunner:
         method = intent.split(" ")[0]
         
         qp_fmt = self.parser.extract_query_param_defaults(path, method.lower())
+        print(qp_fmt)
         if len(qp_fmt.keys()) == 0:
             qp_map = {}
         else:
-            qp_map = await  self.populate_query_parameters(qp_fmt, user_prompt)
+            qp_fmt_flat = self.parser.flatten_query_params(qp_fmt)
+            qp_map = await self.populate_query_parameters(qp_fmt_flat, user_prompt)
         
         
         
         if method.lower() not in ["post", "put", "patch"]:
             # create the API request now and return it
-            return APIRequest(path=formatted_path, params=qp_map)
+            return APIRequest(path=formatted_path, params=qp_map, method=method)
         else:
             rb_fmt, required = self.parser.extract_request_body(self.parser.openapi_spec, path, method.lower())
             rb_fmt = json.dumps(rb_fmt)
             rb_json_str = await self.populate_request_body(rb_fmt, required, user_prompt, str(datetime.now()))
             
-            return APIRequest(path=formatted_path, params=qp_map, request_body=rb_json_str)
+            return APIRequest(path=formatted_path, params=qp_map, request_body=rb_json_str, method=method)
                         
             
             # create the request body, add to API request, and return it.

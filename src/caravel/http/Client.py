@@ -25,41 +25,45 @@ class Client:
     @CaravelRegistry.register(is_async=True)    
     async def post(self, api_request: APIRequest):    
         
-        route, params, json = api_request.path, api_request.params, api_request.request_body
+        route, params, jsn = api_request.path, api_request.params, api_request.request_body
 
         if "post" not in self.allowed_methods:
             return
         if route in self.restricted_routes:
             return
         
-        if len(params.keys()) > 0 and json is not None:
+
+        jsn = json.loads(jsn) if jsn is not None else {}
+        
+        
+        if len(params.keys()) > 0 and len(jsn.keys()) > 0:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     url=f"{self.base_url}{route}",
                     headers=self.get_auth_headers(),
                     params=params,
-                    json=json,
+                    json=jsn,
                 )
                 response.raise_for_status()
-                return str(response.json())
+                return response.json()
         
-        elif len(params.keys()) == 0 and json is not None:
+        elif len(params.keys()) == 0 and len(jsn.keys()) > 0:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     url=f"{self.base_url}{route}",
                     headers=self.get_auth_headers(),
-                    json=json,
+                    json=jsn,
                 )
                 response.raise_for_status()
-                return str(response.json())
-        elif len(params.keys()) == 0 and json is None:
+                return response.json()
+        elif len(params.keys()) == 0 and len(jsn.keys()) == 0:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     url=f"{self.base_url}{route}",
                     headers=self.get_auth_headers(),
                 )
                 response.raise_for_status()
-                return str(response.json())
+                return response.json()
         else:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
@@ -68,40 +72,42 @@ class Client:
                     params=params
                 )
                 response.raise_for_status()
-                return str(response.json())
+                return response.json()
     
     
     @CaravelRegistry.register(is_async=True)
     async def patch(self, api_request: APIRequest):
         
-        route, params, json = api_request.path, api_request.params, api_request.request_body
+        route, params, jsn = api_request.path, api_request.params, api_request.request_body
         
         if "patch" not in self.allowed_methods:
             return
         if route in self.restricted_routes:
             return
+        
+        jsn = json.loads(jsn) if jsn is not None else {}
     
-        if len(params.keys()) > 0 and json is not None:
+        if len(params.keys()) > 0 and len(jsn.keys()) > 0:
             async with httpx.AsyncClient() as client:
                 response = await client.patch(
                     url=f"{self.base_url}{route}",
                     headers=self.get_auth_headers(),
                     params=params,
-                    json=json,
+                    json=jsn,
                 )
                 response.raise_for_status()
                 return str(response.json())
         
-        elif len(params.keys()) == 0 and json is not None:
+        elif len(params.keys()) == 0 and len(jsn.keys()) > 0:
             async with httpx.AsyncClient() as client:
                 response = await client.patch(
                     url=f"{self.base_url}{route}",
                     headers=self.get_auth_headers(),
-                    json=json,
+                    json=jsn,
                 )
                 response.raise_for_status()
-                return str(response.json())
-        elif len(params.keys()) == 0 and json is None:
+                return response.json()
+        elif len(params.keys()) == 0 and len(jsn.keys()) == 0:
             async with httpx.AsyncClient() as client:
                 response = await client.patch(
                     url=f"{self.base_url}{route}",
@@ -117,46 +123,48 @@ class Client:
                     params=params
                 )
                 response.raise_for_status()
-                return str(response.json())
+                return response.json()
     
     @CaravelRegistry.register(is_async=True)
     async def put(self, api_request: APIRequest):
         
-        route, params, json = api_request.path, api_request.params, api_request.request_body
+        route, params, jsn = api_request.path, api_request.params, api_request.request_body
         
         if "patch" not in self.allowed_methods:
             return
         if route in self.restricted_routes:
             return
+        
+        jsn = json.loads(jsn) if jsn is not None else {}
     
-        if len(params.keys()) > 0 and json is not None:
+        if len(params.keys()) > 0 and len(jsn.keys()) > 0:
             async with httpx.AsyncClient() as client:
                 response = await client.put(
                     url=f"{self.base_url}{route}",
                     headers=self.get_auth_headers(),
                     params=params,
-                    json=json,
+                    json=jsn,
                 )
                 response.raise_for_status()
-                return str(response.json())
+                return response.json()
         
-        elif len(params.keys()) == 0 and json is not None:
+        elif len(params.keys()) == 0 and len(jsn.keys()) > 0:
             async with httpx.AsyncClient() as client:
                 response = await client.put(
                     url=f"{self.base_url}{route}",
                     headers=self.get_auth_headers(),
-                    json=json,
+                    json=jsn,
                 )
                 response.raise_for_status()
-                return str(response.json())
-        elif len(params.keys()) == 0 and json is None:
+                return response.json()
+        elif len(params.keys()) == 0 and len(jsn.keys()) == 0:
             async with httpx.AsyncClient() as client:
                 response = await client.put(
                     url=f"{self.base_url}{route}",
                     headers=self.get_auth_headers(),
                 )
                 response.raise_for_status()
-                return str(response.json())
+                return response.json()
         else:
             async with httpx.AsyncClient() as client:
                 response = await client.put(
@@ -165,46 +173,48 @@ class Client:
                     params=params
                 )
                 response.raise_for_status()
-                return str(response.json())
+                return response.json()
     
     @CaravelRegistry.register(is_async=True)
     async def get(self, api_request: APIRequest):
         
-        route, params, json = api_request.path, api_request.params, api_request.request_body
+        route, params, jsn = api_request.path, api_request.params, api_request.request_body
         
         if "patch" not in self.allowed_methods:
             return
         if route in self.restricted_routes:
             return
     
-        if len(params.keys()) > 0 and json is not None:
+        jsn = json.loads(jsn) if jsn is not None else {}
+    
+        if len(params.keys()) > 0 and len(jsn.keys()) > 0:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
                     url=f"{self.base_url}{route}",
                     headers=self.get_auth_headers(),
                     params=params,
-                    json=json,
+                    json=jsn,
                 )
                 response.raise_for_status()
-                return str(response.json())
+                return response.json()
         
-        elif len(params.keys()) == 0 and json is not None:
+        elif len(params.keys()) == 0 and len(jsn.keys()) > 0:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
                     url=f"{self.base_url}{route}",
                     headers=self.get_auth_headers(),
-                    json=json,
+                    json=jsn,
                 )
                 response.raise_for_status()
-                return str(response.json())
-        elif len(params.keys()) == 0 and json is None:
+                return response.json()
+        elif len(params.keys()) == 0 and len(jsn.keys()) == 0:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
                     url=f"{self.base_url}{route}",
                     headers=self.get_auth_headers(),
                 )
                 response.raise_for_status()
-                return str(response.json())
+                return response.json()
         else:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
@@ -213,47 +223,50 @@ class Client:
                     params=params
                 )
                 response.raise_for_status()
-                return str(response.json())
+                print(response)
+                return response.json()
     
     
     @CaravelRegistry.register(is_async=True)
     async def delete(self, api_request: APIRequest):
         
-        route, params, json = api_request.path, api_request.params, api_request.request_body
+        route, params, jsn = api_request.path, api_request.params, api_request.request_body
         
         if "patch" not in self.allowed_methods:
             return
         if route in self.restricted_routes:
             return
     
-        if len(params.keys()) > 0 and json is not None:
+        jsn = json.loads(jsn) if jsn is not None else {}
+    
+        if len(params.keys()) > 0 and len(jsn.keys()) > 0:
             async with httpx.AsyncClient() as client:
                 response = await client.put(
                     url=f"{self.base_url}{route}",
                     headers=self.get_auth_headers(),
                     params=params,
-                    json=json,
+                    json=jsn,
                 )
                 response.raise_for_status()
-                return str(response.json())
+                return response.json()
         
-        elif len(params.keys()) == 0 and json is not None:
+        elif len(params.keys()) == 0 and len(jsn.keys()) > 0:
             async with httpx.AsyncClient() as client:
                 response = await client.put(
                     url=f"{self.base_url}{route}",
                     headers=self.get_auth_headers(),
-                    json=json,
+                    json=jsn,
                 )
                 response.raise_for_status()
-                return str(response.json())
-        elif len(params.keys()) == 0 and json is None:
+                return response.json()
+        elif len(params.keys()) == 0 and len(jsn.keys()) == 0:
             async with httpx.AsyncClient() as client:
                 response = await client.put(
                     url=f"{self.base_url}{route}",
                     headers=self.get_auth_headers(),
                 )
                 response.raise_for_status()
-                return str(response.json())
+                return response.json()
         else:
             async with httpx.AsyncClient() as client:
                 response = await client.put(
@@ -262,7 +275,7 @@ class Client:
                     params=params
                 )
                 response.raise_for_status()
-                return str(response.json())
+                return response.json()
              
     # # TODO: figure out typing for params
     # @CaravelRegistry.register(is_async=True)

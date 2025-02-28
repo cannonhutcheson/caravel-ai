@@ -103,7 +103,8 @@ class Parser:
                 # return {"oneOf": resolved_options}
             possible_keys = []
             for option in schema["oneOf"]:
-                resolved = self.resolve_ref(option["$ref"], self.openapi_spec) if "$ref" in option else option
+                # resolved = self.resolve_ref(option["$ref"], self.openapi_spec) if "$ref" in option else option
+                resolved = self.resolve_ref(option["$ref"]) if "$ref" in option else option
                 if "properties" in resolved:
                     possible_keys.extend(resolved["properties"].keys())
             return possible_keys
@@ -137,7 +138,9 @@ class Parser:
             if isinstance(value, dict):
                 flat_params.update(self.flatten_query_params(value, full_key))
             elif isinstance(value, list):
-                flat_params[full_key] = " | ".join(map(str, value))
+                if all(isinstance(item, str) for item in value):
+                    joined_keys = " | ".join(value)
+                    flat_params[f"{full_key}[{joined_keys}]"] = ""
             else:
                 flat_params[full_key] = value
                 
