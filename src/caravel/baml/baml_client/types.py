@@ -40,6 +40,9 @@ def all_succeeded(checks: Dict[CheckName, Check]) -> bool:
 
 
 
+class DynamicEnum(str, Enum):
+    pass
+
 class DynamicJsonEnum(str, Enum):
     pass
 
@@ -61,6 +64,9 @@ class APIRequestFormer(BaseModel):
     params: Dict[str, str]
 
 class DynamicJsonObject(BaseModel):
+    model_config = ConfigDict(extra='allow')
+
+class DynamicObject(BaseModel):
     model_config = ConfigDict(extra='allow')
 
 class RequestBody(BaseModel):

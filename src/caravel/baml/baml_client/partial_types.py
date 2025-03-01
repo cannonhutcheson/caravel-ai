@@ -46,6 +46,9 @@ class APIRequestFormer(BaseModel):
 class DynamicJsonObject(BaseModel):
     model_config = ConfigDict(extra='allow')
 
+class DynamicObject(BaseModel):
+    model_config = ConfigDict(extra='allow')
+
 class RequestBody(BaseModel):
     """"""
     required: List[str]

@@ -22,9 +22,9 @@ from .globals import DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIM
 class TypeBuilder(_TypeBuilder):
     def __init__(self):
         super().__init__(classes=set(
-          ["APIRequest","APIRequestFormer","DynamicJsonObject","RequestBody","RequestDataStorage","Resume",]
+          ["APIRequest","APIRequestFormer","DynamicJsonObject","DynamicObject","RequestBody","RequestDataStorage","Resume",]
         ), enums=set(
-          ["DynamicJsonEnum","HTTPMethod",]
+          ["DynamicEnum","DynamicJsonEnum","HTTPMethod",]
         ), runtime=DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME)
 
 
@@ -34,7 +34,18 @@ class TypeBuilder(_TypeBuilder):
         return DynamicJsonObjectBuilder(self)
 
 
+    
+    @property
+    def DynamicObject(self) -> "DynamicObjectBuilder":
+        return DynamicObjectBuilder(self)
 
+
+
+
+
+    @property
+    def DynamicEnum(self) -> "DynamicEnumBuilder":
+        return DynamicEnumBuilder(self)
 
 
     @property
@@ -76,8 +87,77 @@ class DynamicJsonObjectProperties:
             raise AttributeError(f"Property {name} not found.")
         return ClassPropertyBuilder(self.__bldr.property(name))
 
+class DynamicObjectBuilder:
+    def __init__(self, tb: _TypeBuilder):
+        _tb = tb._tb # type: ignore (we know how to use this private attribute)
+        self.__bldr = _tb.class_("DynamicObject")
+        self.__properties: typing.Set[str] = set([])
+        self.__props = DynamicObjectProperties(self.__bldr, self.__properties)
+
+    def type(self) -> FieldType:
+        return self.__bldr.field()
+
+    @property
+    def props(self) -> "DynamicObjectProperties":
+        return self.__props
+    
+    def list_properties(self) -> typing.List[typing.Tuple[str, ClassPropertyBuilder]]:
+        return [(name, ClassPropertyBuilder(self.__bldr.property(name))) for name in self.__properties]
+
+    def add_property(self, name: str, type: FieldType) -> ClassPropertyBuilder:
+        if name in self.__properties:
+            raise ValueError(f"Property {name} already exists.")
+        return ClassPropertyBuilder(self.__bldr.property(name).type(type))
+
+class DynamicObjectProperties:
+    def __init__(self, cls_bldr: ClassBuilder, properties: typing.Set[str]):
+        self.__bldr = cls_bldr
+        self.__properties = properties
+
+    
+
+    def __getattr__(self, name: str) -> ClassPropertyBuilder:
+        if name not in self.__properties:
+            raise AttributeError(f"Property {name} not found.")
+        return ClassPropertyBuilder(self.__bldr.property(name))
 
 
+
+
+class DynamicEnumBuilder:
+    def __init__(self, tb: _TypeBuilder):
+        _tb = tb._tb # type: ignore (we know how to use this private attribute)
+        self.__bldr = _tb.enum("DynamicEnum")
+        self.__values: typing.Set[str] = set([])
+        self.__vals = DynamicEnumValues(self.__bldr, self.__values)
+
+    def type(self) -> FieldType:
+        return self.__bldr.field()
+
+    @property
+    def values(self) -> "DynamicEnumValues":
+        return self.__vals
+
+    def list_values(self) -> typing.List[typing.Tuple[str, EnumValueBuilder]]:
+        return [(name, self.__bldr.value(name)) for name in self.__values]
+
+    def add_value(self, name: str) -> EnumValueBuilder:
+        if name in self.__values:
+            raise ValueError(f"Value {name} already exists.")
+        self.__values.add(name)
+        return self.__bldr.value(name)
+
+class DynamicEnumValues:
+    def __init__(self, enum_bldr: EnumBuilder, values: typing.Set[str]):
+        self.__bldr = enum_bldr
+        self.__values = values
+
+    
+
+    def __getattr__(self, name: str) -> EnumValueBuilder:
+        if name not in self.__values:
+            raise AttributeError(f"Value {name} not found.")
+        return self.__bldr.value(name)
 
 class DynamicJsonEnumBuilder:
     def __init__(self, tb: _TypeBuilder):
