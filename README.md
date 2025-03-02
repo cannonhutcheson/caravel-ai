@@ -4,7 +4,7 @@ Caravel makes it easy to develop AI Agents that interact with third-party APIs. 
 
 ## Installation
 ```bash
-pip install caravel-ai
+installation cmd goes here
 ```
 
 # Overview
