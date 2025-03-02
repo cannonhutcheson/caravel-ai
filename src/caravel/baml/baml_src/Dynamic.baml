@@ -20,3 +20,30 @@ function ExtractDynamicTypes(context: string) -> DynamicObject{
     "#
 } // ExtractDynamicTypes
 
+
+class DynamicAPIRequest {
+    path string
+    method HTTPMethod
+    query_params  map<string, string>?
+    request_body DynamicObject?
+} // DynamicAPIRequest
+
+function ConstructDynamicAPIRequest(path: string, method: HTTPMethod | string, query_params: map<string, string>?, request_body: DynamicObject?) -> DynamicAPIRequest {
+    client "openai/gpt-4o-mini"
+    prompt #"
+        Using
+        {{ path }}
+        {{ method }}
+        {{ query_params }}
+        {{ request_body }}
+        {{ ctx.output_format }}
+    "#
+} // ConstructDynamicAPIRequest
+
+test api_req_dyn {
+    functions [ConstructDynamicAPIRequest]
+    args {
+        path "/addresses"
+        method GET
+    } // args
+}

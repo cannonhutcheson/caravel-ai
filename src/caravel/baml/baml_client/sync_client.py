@@ -70,6 +70,29 @@ class BamlSyncClient:
       )
       return cast(types.APIRequest, raw.cast_to(types, types, partial_types, False))
     
+    def ConstructDynamicAPIRequest(
+        self,
+        path: str,method: Union[types.HTTPMethod, str],query_params: Optional[Dict[str, str]],request_body: Optional[types.DynamicObject],
+        baml_options: BamlCallOptions = {},
+    ) -> types.DynamicAPIRequest:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = self.__runtime.call_function_sync(
+        "ConstructDynamicAPIRequest",
+        {
+          "path": path,"method": method,"query_params": query_params,"request_body": request_body,
+        },
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+      return cast(types.DynamicAPIRequest, raw.cast_to(types, types, partial_types, False))
+    
     def CreateAPIRequestBody(
         self,
         schema: types.RequestBody,user_prompt: str,
@@ -410,6 +433,39 @@ class BamlStreamClient:
         raw,
         lambda x: cast(partial_types.APIRequest, x.cast_to(types, types, partial_types, True)),
         lambda x: cast(types.APIRequest, x.cast_to(types, types, partial_types, False)),
+        self.__ctx_manager.get(),
+      )
+    
+    def ConstructDynamicAPIRequest(
+        self,
+        path: str,method: Union[types.HTTPMethod, str],query_params: Optional[Dict[str, str]],request_body: Optional[types.DynamicObject],
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlSyncStream[partial_types.DynamicAPIRequest, types.DynamicAPIRequest]:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = self.__runtime.stream_function_sync(
+        "ConstructDynamicAPIRequest",
+        {
+          "path": path,
+          "method": method,
+          "query_params": query_params,
+          "request_body": request_body,
+        },
+        None,
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+
+      return baml_py.BamlSyncStream[partial_types.DynamicAPIRequest, types.DynamicAPIRequest](
+        raw,
+        lambda x: cast(partial_types.DynamicAPIRequest, x.cast_to(types, types, partial_types, True)),
+        lambda x: cast(types.DynamicAPIRequest, x.cast_to(types, types, partial_types, False)),
         self.__ctx_manager.get(),
       )
     
