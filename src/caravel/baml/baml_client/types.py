@@ -66,7 +66,7 @@ class APIRequestFormer(BaseModel):
 class DynamicAPIRequest(BaseModel):
     path: str
     method: "HTTPMethod"
-    query_params: Optional[Dict[str, str]] = None
+    params: Optional[Dict[str, str]] = None
     request_body: Optional["DynamicObject"] = None
 
 class DynamicJsonObject(BaseModel):

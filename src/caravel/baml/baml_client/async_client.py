@@ -75,7 +75,7 @@ class BamlAsyncClient:
     
     async def ConstructDynamicAPIRequest(
         self,
-        path: str,method: Union[types.HTTPMethod, str],query_params: Optional[Dict[str, str]],request_body: Optional[types.DynamicObject],
+        path: str,method: Union[types.HTTPMethod, str],params: Optional[Dict[str, str]],request_body: Optional[types.DynamicObject],
         baml_options: BamlCallOptions = {},
     ) -> types.DynamicAPIRequest:
       __tb__ = baml_options.get("tb", None)
@@ -88,7 +88,7 @@ class BamlAsyncClient:
       raw = await self.__runtime.call_function(
         "ConstructDynamicAPIRequest",
         {
-          "path": path,"method": method,"query_params": query_params,"request_body": request_body,
+          "path": path,"method": method,"params": params,"request_body": request_body,
         },
         self.__ctx_manager.get(),
         tb,
@@ -280,6 +280,29 @@ class BamlAsyncClient:
       )
       return cast(types.Resume, raw.cast_to(types, types, partial_types, False))
     
+    async def GenerateHumanLanguageResponse(
+        self,
+        json: str,context: str,
+        baml_options: BamlCallOptions = {},
+    ) -> str:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = await self.__runtime.call_function(
+        "GenerateHumanLanguageResponse",
+        {
+          "json": json,"context": context,
+        },
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+      return cast(str, raw.cast_to(types, types, partial_types, False))
+    
     async def GetIntent(
         self,
         intents: List[str],intent: str,
@@ -440,7 +463,7 @@ class BamlStreamClient:
     
     def ConstructDynamicAPIRequest(
         self,
-        path: str,method: Union[types.HTTPMethod, str],query_params: Optional[Dict[str, str]],request_body: Optional[types.DynamicObject],
+        path: str,method: Union[types.HTTPMethod, str],params: Optional[Dict[str, str]],request_body: Optional[types.DynamicObject],
         baml_options: BamlCallOptions = {},
     ) -> baml_py.BamlStream[partial_types.DynamicAPIRequest, types.DynamicAPIRequest]:
       __tb__ = baml_options.get("tb", None)
@@ -455,7 +478,7 @@ class BamlStreamClient:
         {
           "path": path,
           "method": method,
-          "query_params": query_params,
+          "params": params,
           "request_body": request_body,
         },
         None,
@@ -712,6 +735,37 @@ class BamlStreamClient:
         raw,
         lambda x: cast(partial_types.Resume, x.cast_to(types, types, partial_types, True)),
         lambda x: cast(types.Resume, x.cast_to(types, types, partial_types, False)),
+        self.__ctx_manager.get(),
+      )
+    
+    def GenerateHumanLanguageResponse(
+        self,
+        json: str,context: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlStream[Optional[str], str]:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      raw = self.__runtime.stream_function(
+        "GenerateHumanLanguageResponse",
+        {
+          "json": json,
+          "context": context,
+        },
+        None,
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+
+      return baml_py.BamlStream[Optional[str], str](
+        raw,
+        lambda x: cast(Optional[str], x.cast_to(types, types, partial_types, True)),
+        lambda x: cast(str, x.cast_to(types, types, partial_types, False)),
         self.__ctx_manager.get(),
       )
     
