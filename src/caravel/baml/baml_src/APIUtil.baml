@@ -23,6 +23,21 @@ enum DynamicJsonEnum {
     @@dynamic
 } // DynamicJsonEnum
 
+
+function GenerateHumanLanguageResponse(json: string, context: string) -> string {
+    client "openai/gpt-4o-mini"
+    prompt #"
+
+        Describe the content within the following
+        {{ json }}
+        as if you are answering the prompt in
+        {{ context }}
+        in a single paragraph. Do not include technical details, just describe the content itself.
+        
+        {{ ctx.output_format }}
+    "#
+} // GenerateHumanLanguageResponse
+
 function DynamicGenerateReqBody(context: string) -> DynamicJsonObject {
     client "openai/gpt-4o-mini"
     prompt #"
