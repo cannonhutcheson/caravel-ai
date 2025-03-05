@@ -2,7 +2,7 @@
 import json
 from typing import Dict, List
 from src.caravel.baml.baml_client.async_client import b
-from src.caravel.baml.baml_client.types import APIRequest, RequestBody, RequestDataStorage
+# from src.caravel.baml.baml_client.types import
 from caravel.baml.baml_client.type_builder import TypeBuilder
 from src.caravel.parsing import Parser
 import os
@@ -25,27 +25,27 @@ class BamlRunner:
         return response
     
     
-    async def extract_req_body_format(self, req_body_json: str, required_req: List[str]) -> RequestDataStorage:
-        response = await b.ExtractReqBodyFormat(req_body_json, required_req)
-        return response
+    # async def extract_req_body_format(self, req_body_json: str, required_req: List[str]) -> RequestDataStorage:
+    #     response = await b.ExtractReqBodyFormat(req_body_json, required_req)
+    #     return response
      
     
-    async def extract_query_params_format(self, params: List[str], required: List[str]) -> RequestDataStorage:
-        response = await b.ExtractQueryParamsFormat(
-            params,
-            required
-        )
-        return response
+    # async def extract_query_params_format(self, params: List[str], required: List[str]) -> RequestDataStorage:
+    #     response = await b.ExtractQueryParamsFormat(
+    #         params,
+    #         required
+    #     )
+    #     return response
         
     
-    async def get_request_body(self, raw_json: str) -> RequestBody:
-        response = await b.ExtractRequestBodySchema(raw_json)
-        return response
+    # async def get_request_body(self, raw_json: str) -> RequestBody:
+    #     response = await b.ExtractRequestBodySchema(raw_json)
+    #     return response
 
     
-    async def make_api_request_body(self, schema: RequestBody, user_prompt: str) -> APIRequest:
-        response = await b.CreateAPIRequestBody(schema, user_prompt)
-        return response
+    # async def make_api_request_body(self, schema: RequestBody, user_prompt: str) -> APIRequest:
+    #     response = await b.CreateAPIRequestBody(schema, user_prompt)
+    #     return response
 
     
     async def get_intent(self, intents: list[str], intent) -> str:
@@ -55,10 +55,10 @@ class BamlRunner:
     
     async def populate_request_body(self, fmt: str, required: list[str], context: str, date:str=str(datetime.now())) -> str:
         
-        print(fmt)
-        print(required)
-        print(context)
-        print(date)
+        # print(fmt)
+        # print(required)
+        # print(context)
+        # print(date)
         
         try:
             response = await b.PopulateRequestBody(fmt, required, context, date)
@@ -74,34 +74,34 @@ class BamlRunner:
         except Exception:
             raise Exception("BamlRunner.populate_query_parameters: an error occurred")
 
-    async def construct_api_request(self, intents: list[str], user_prompt: str) -> APIRequest:
-        intent = await self.get_intent(intents=intents, intent=user_prompt)
-        path = self.parser.path_map[intent]
-        formatted_path = await self.make_path(path, user_prompt)
-        method = intent.split(" ")[0]
+    # async def construct_api_request(self, intents: list[str], user_prompt: str) -> APIRequest:
+    #     intent = await self.get_intent(intents=intents, intent=user_prompt)
+    #     path = self.parser.path_map[intent]
+    #     formatted_path = await self.make_path(path, user_prompt)
+    #     method = intent.split(" ")[0]
         
-        qp_fmt = self.parser.extract_query_param_defaults(path, method.lower())
-        print(qp_fmt)
-        if len(qp_fmt.keys()) == 0:
-            qp_map = {}
-        else:
-            qp_fmt_flat = self.parser.flatten_query_params(qp_fmt)
-            qp_map = await self.populate_query_parameters(qp_fmt_flat, user_prompt)
+    #     qp_fmt = self.parser.extract_query_param_defaults(path, method.lower())
+    #     print(qp_fmt)
+    #     if len(qp_fmt.keys()) == 0:
+    #         qp_map = {}
+    #     else:
+    #         qp_fmt_flat = self.parser.flatten_query_params(qp_fmt)
+    #         qp_map = await self.populate_query_parameters(qp_fmt_flat, user_prompt)
         
         
         
-        if method.lower() not in ["post", "put", "patch"]:
-            # create the API request now and return it
-            return APIRequest(path=formatted_path, params=qp_map, method=method)
-        else:
-            rb_fmt, required = self.parser.extract_request_body(self.parser.openapi_spec, path, method.lower())
-            rb_fmt = json.dumps(rb_fmt)
-            rb_json_str = await self.populate_request_body(rb_fmt, required, user_prompt, str(datetime.now()))
+    #     if method.lower() not in ["post", "put", "patch"]:
+    #         # create the API request now and return it
+    #         return APIRequest(path=formatted_path, params=qp_map, method=method)
+    #     else:
+    #         rb_fmt, required = self.parser.extract_request_body(self.parser.openapi_spec, path, method.lower())
+    #         rb_fmt = json.dumps(rb_fmt)
+    #         rb_json_str = await self.populate_request_body(rb_fmt, required, user_prompt, str(datetime.now()))
             
-            return APIRequest(path=formatted_path, params=qp_map, request_body=rb_json_str, method=method)
+    #         return APIRequest(path=formatted_path, params=qp_map, request_body=rb_json_str, method=method)
                         
             
-            # create the request body, add to API request, and return it.
+    #         # create the request body, add to API request, and return it.
             
     async def construct_dynamic_api_request(self, intents: list[str], context: str):
         '''
