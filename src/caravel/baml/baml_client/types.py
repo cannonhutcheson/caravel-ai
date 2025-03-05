@@ -60,9 +60,6 @@ class APIRequest(BaseModel):
     params: Dict[str, str]
     request_body: Optional[str] = None
 
-class APIRequestFormer(BaseModel):
-    params: Dict[str, str]
-
 class DynamicAPIRequest(BaseModel):
     path: str
     method: "HTTPMethod"
@@ -74,19 +71,6 @@ class DynamicJsonObject(BaseModel):
 
 class DynamicObject(BaseModel):
     model_config = ConfigDict(extra='allow')
-
-class RequestBody(BaseModel):
-    """"""
-    required: List[str]
-    required_types: List[str]
-    all_params: List[str]
-    all_types: List[str]
-
-class RequestDataStorage(BaseModel):
-    required: List[str]
-    required_types: List[str]
-    all_params: List[str]
-    all_types: List[str]
 
 class Resume(BaseModel):
     name: str

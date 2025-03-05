@@ -22,7 +22,7 @@ from .globals import DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIM
 class TypeBuilder(_TypeBuilder):
     def __init__(self):
         super().__init__(classes=set(
-          ["APIRequest","APIRequestFormer","DynamicAPIRequest","DynamicJsonObject","DynamicObject","RequestBody","RequestDataStorage","Resume",]
+          ["APIRequest","DynamicAPIRequest","DynamicJsonObject","DynamicObject","Resume",]
         ), enums=set(
           ["DynamicEnum","DynamicJsonEnum","HTTPMethod",]
         ), runtime=DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME)
