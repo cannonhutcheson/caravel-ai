@@ -24,10 +24,11 @@ import time
         
 async def new_main():
        
-    parser = Parser()
-    json_dict = parser.json_to_dict("samsara.json")
-    parser.set_openapi_spec(json_dict)
-    parser.map_paths_to_desc(parser.openapi_spec)
+    # parser = Parser()
+    # json_dict = parser.json_to_dict("samsara.json")
+    # parser.set_openapi_spec(json_dict)
+    # parser.map_paths_to_desc(parser.openapi_spec)
+    parser = Parser(file="samsara.json")
     runner = BamlRunner(parser)
     
     

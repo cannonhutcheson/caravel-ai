@@ -1,15 +1,40 @@
-import json
-from typing import List, Tuple
+from typing import Dict, List, Optional, Tuple
 import ruamel.yaml
 from pathlib import Path
-import re
+import re, random, json
+
+from caravel.baml.baml_client.type_builder import TypeBuilder
 
 class Parser:
-    def __init__(self):
-        self.api_dictionary = dict()
-        self.path_map = dict()
+    
+    # let's think about what we will need to supply for a constructor here...
+    def __init__(self, api_dict:Optional[Dict]=None, file:Optional[str]=""):
         self.openapi_spec = dict()
+        self.path_map = dict()
         self.intents = list()
+            
+        if file != "":
+            file_type = file.split(".")[-1]
+            if file_type == "json":
+                self.openapi_spec = self.json_to_dict(file)
+            elif file_type == "yaml":
+                file = self.yaml_to_json(in_file=file)
+                self.openapi_spec = self.json_to_dict(file)
+            else:
+                raise ValueError("OpenAPI Specification file must be either JSON or YAML file. Ensure file uses .json or .yaml extension.")
+        elif api_dict is not None:
+            self.openapi_spec = api_dict
+        if self.openapi_spec != {}:
+            self.path_map = self.map_paths_to_desc(self.openapi_spec)
+            self.intents = list(self.path_map.keys())
+        
+    # def __init__(self):
+    #     self.api_dictionary = dict()
+    #     self.path_map = dict()
+    #     self.openapi_spec = dict()
+    #     self.intents = list()
+    #     self.tb = TypeBuilder() # a BAML class that allows for dynamic typing @ runtime
+        
     def _clean_markdown(self, desc):
         '''
         Cleans up the OpenAPI description by removing unwanted markdown formatting.
@@ -22,7 +47,7 @@ class Parser:
         desc = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1 (\2)", desc)
         return desc
     
-    def yaml_to_json(self, in_file: str, out_file: str) -> None:
+    def yaml_to_json(self, in_file: str, out_file: Optional[str]=f"output_{random.randint(1, 1000)}.json") -> None:
         yml = ruamel.yaml.YAML(typ='safe')
         with open(in_file) as fpi:
             data = yml.load(fpi)
@@ -51,16 +76,46 @@ class Parser:
     
     
     
-    def resolve_ref(self, ref_path: str) -> dict:
+    # def resolve_ref(self, ref_path: str) -> dict:
+    #     keys = ref_path.lstrip("#/").split("/")
+    #     schema = self.openapi_spec
+        
+    #     for key in keys:
+    #         schema = schema.get(key, {})
+            
+    #     if "$ref" in schema:
+    #         return self.resolve_ref(schema["$ref"])
+        
+    #     return schema
+    
+    def resolve_ref(self, ref_path:str) -> dict:
+        if not ref_path.startswith("#/"):
+            raise ValueError(f"Invalid reference format: {ref_path}")
+    
         keys = ref_path.lstrip("#/").split("/")
         schema = self.openapi_spec
-        
+
         for key in keys:
-            schema = schema.get(key, {})
-            
-        if "$ref" in schema:
-            return self.resolve_ref(schema["$ref"])
+            if key in schema:
+                schema = schema[key]
+            else:
+                raise ValueError(f"Reference {ref_path} not found in schema.")
         
+        # If the resolved schema itself has a $ref, resolve it recursively
+        while "$ref" in schema:
+            schema = self.resolve_ref(schema["$ref"])
+            
+        def resolve_nested_refs(obj):
+            if isinstance(obj, dict):
+                if "$ref" in obj:
+                    return self.resolve_ref(obj["$ref"])
+                return {key: resolve_nested_refs(value) for key, value in obj.items()}
+            elif isinstance(obj, list):
+                return [resolve_nested_refs(item) for item in obj]
+            return obj
+        
+        if "properties" in schema:
+            schema["properties"] = resolve_nested_refs(schema["properties"])
         return schema
 
     def extract_query_param_defaults(self, path: str, method: str) -> dict:
@@ -89,13 +144,11 @@ class Parser:
         return query_param_defaults
 
     def get_default_value(self, schema):
-            
+        
         if "$ref" in schema:
             schema = self.resolve_ref(schema["$ref"])
                 
         if "enum" in schema:
-            # typebuilder create enum
-            # add all of the values
             return " | ".join(schema["enum"])
             
         if "oneOf" in schema:
@@ -107,6 +160,8 @@ class Parser:
                 resolved = self.resolve_ref(option["$ref"]) if "$ref" in option else option
                 if "properties" in resolved:
                     possible_keys.extend(resolved["properties"].keys())
+            # the possible keys need to be represented with a union of each of their types
+            # DO THAT HERE
             return possible_keys
             
         if "default" in schema:
@@ -115,6 +170,7 @@ class Parser:
         schema_type = schema.get("type")
         print(f"{schema_type}")
         if schema_type == "string":
+            
             return "<string>"
         elif schema_type == "integer":
             return 0 # needs to be @ least 1 for pagination
@@ -123,13 +179,87 @@ class Parser:
         elif schema_type == "number":
             return 0.0
         elif schema_type == "array":
-            return ["<array>"]
+            
+            if "items" in schema:
+                item_schema = schema["items"]
+                resolved_item_schema = self.resolve_ref(item_schema["$ref"]) if "$ref" in item_schema else item_schema
+            
+            # Handle case where array items are objects
+                if resolved_item_schema.get("type") == "object":
+                    return [{key: self.get_default_value(value) for key, value in resolved_item_schema.get("properties", {}).items()}]
+            
+                return [self.get_default_value(resolved_item_schema)]
+            return []
+            
+            
+            # if "items" in schema:
+            #     item_schema = schema["items"]
+            #     if "$ref" in item_schema:
+            #         resolved_item_schema = self.resolve_ref(item_schema["$ref"])
+            #         return [self.get_default_value(resolved_item_schema)]
+            #     elif "type" in item_schema:
+            #         return [self.get_default_value(item_schema)]
+            # return []
+            # return ["<array>"]
         elif schema_type == "object":
+            
             return {
                 key: self.get_default_value(value) for key, value in schema.get("properties", {}).items()
                 }
         return None
-
+    
+    # def create_dynamic_type(self, schema, field_name:str="root"):
+        
+    #     if "$ref" in schema:
+    #         schema = self.resolve_ref(schema["$ref"])
+            
+    #     if "oneOf" in schema:
+    #         # resolved_options = [resolve_ref(option["$ref"], openapi_spec) for option in schema["oneOf"]]
+    #             # return {"oneOf": resolved_options}
+    #         possible_keys = []
+    #         for option in schema["oneOf"]:
+    #             # resolved = self.resolve_ref(option["$ref"], self.openapi_spec) if "$ref" in option else option
+    #             resolved = self.resolve_ref(option["$ref"]) if "$ref" in option else option
+    #             if "properties" in resolved:
+    #                 possible_keys.extend(resolved["properties"].keys())
+    #         # the possible keys need to be represented with a union of each of their types
+    #         # DO THAT HERE
+    #         return possible_keys
+            
+    #     # if "default" in schema:
+    #         # return schema["default"]            
+            
+    #     schema_type = schema.get("type")
+    #     print(f"{schema_type}")
+    #     if schema_type == "string":
+    #         if enum := schema.get("enum"):
+    #             new_enum = self.tb.add_enum(field_name)
+    #             for value in enum:
+    #                 new_enum.add_value(value)
+    #             return new_enum.type()
+    #         return self.tb.string()
+    #     elif schema_type == "integer":
+    #         return self.tb.int()
+    #     elif schema_type == "boolean":
+    #         return self.tb.bool()
+    #     elif schema_type == "number":
+    #         return self.tb.float()
+    #     elif schema_type == "array":
+    #         if "items" in schema:
+    #             item_schema = schema["items"]
+    #             if "$ref" in item_schema:
+    #                 resolved_item_schema = self.resolve_ref(item_schema["$ref"])
+    #                 return [self.get_default_value(resolved_item_schema)]
+    #             elif "type" in item_schema:
+    #                 return [self.get_default_value(item_schema)]
+    #         return []
+    #         return ["<array>"]
+    #     elif schema_type == "object":
+    #         return {
+    #             key: self.get_default_value(value, key) for key, value in schema.get("properties", {}).items()
+    #             }
+    #     return None
+        
     def flatten_query_params(self, params: dict, prefix: str="") -> dict:
         flat_params = {}
         for key, value in params.items():
@@ -149,7 +279,16 @@ class Parser:
     
     def extract_request_body(self, openapi_spec: dict, path: str, method: str) -> tuple:
         request_body = openapi_spec["paths"][path][method].get("requestBody", {}).get("content", {})
+        print("Request body reference: ", request_body)
         schema = request_body.get("application/json", {}).get("schema", {})
+        print("schema", schema)
+        
+        # resolve ref check
+        if "$ref" in schema:
+            schema = self.resolve_ref(schema["$ref"])
+        
+        print("Post-resolve schema", schema)
+        
         if not schema:
             return {}
 
