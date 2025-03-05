@@ -1,7 +1,8 @@
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import ruamel.yaml
 from pathlib import Path
 import re, random, json
+from caravel.baml.baml_client.type_builder import TypeBuilder, FieldType
 
 from caravel.baml.baml_client.type_builder import TypeBuilder
 
@@ -27,13 +28,6 @@ class Parser:
         if self.openapi_spec != {}:
             self.path_map = self.map_paths_to_desc(self.openapi_spec)
             self.intents = list(self.path_map.keys())
-        
-    # def __init__(self):
-    #     self.api_dictionary = dict()
-    #     self.path_map = dict()
-    #     self.openapi_spec = dict()
-    #     self.intents = list()
-    #     self.tb = TypeBuilder() # a BAML class that allows for dynamic typing @ runtime
         
     def _clean_markdown(self, desc):
         '''
@@ -207,6 +201,135 @@ class Parser:
                 key: self.get_default_value(value) for key, value in schema.get("properties", {}).items()
                 }
         return None
+    
+    
+    class SchemaAdder:
+        def __init__(self, tb: TypeBuilder, schema: Dict[str, Any], spec: dict):
+            self.tb = tb
+            self.schema = schema
+            self._ref_cache = {}
+            self.spec = spec
+            self.existing_classes = set()
+
+        def _parse_object(self, json_schema: Dict[str, Any], parent_key: str) -> FieldType:
+            """Parses an object type from JSON schema, using the parent key to name the class."""
+
+            # assert json_schema["type"] == "object"
+
+            
+            if not parent_key:
+                raise ValueError("parent_key is required to name the object correctly.")
+
+            print(f"Parsing object: {parent_key}")  # Debugging output
+
+            required_fields = json_schema.get("required", [])
+            assert isinstance(required_fields, list)
+
+            if parent_key in self.existing_classes:
+                print(f"Skipping duplicate class definition for {parent_key}")
+                return self.tb.get_class(parent_key).type()
+
+            self.existing_classes.add(parent_key)
+            new_cls = self.tb.add_class(parent_key)
+
+            if properties := json_schema.get("properties"):
+                assert isinstance(properties, dict)
+
+                for field_name, field_schema in properties.items():
+                    assert isinstance(field_schema, dict)
+
+                    default_value = field_schema.get("default")
+
+                    # Recursively call parse, using the field name as the new parent_key
+                    field_type = self.parse(field_schema, parent_key=field_name)
+
+                    if field_name not in required_fields:
+                        if default_value is None:
+                            field_type = field_type.optional()
+
+                    property = new_cls.add_property(field_name, field_type)
+
+                    if description := field_schema.get("description"):
+                        assert isinstance(description, str)
+                        if default_value is not None:
+                            description = (
+                                description.strip() + "\n" + f"Default: {default_value}"
+                            )
+                            description = description.strip()
+                        if len(description) > 0:
+                            property.description(description)
+
+            return new_cls.type()
+
+
+        def _parse_string(self, json_schema: Dict[str, Any]) -> FieldType:
+            assert json_schema["type"] == "string"
+            title = json_schema.get("title")
+
+            if enum := json_schema.get("enum"):
+                assert isinstance(enum, list)
+                if title is None:
+                    # Treat as a union of literals
+                    return self.tb.union([self.tb.literal_string(value) for value in enum])
+                new_enum = self.tb.add_enum(title)
+                for value in enum:
+                    new_enum.add_value(value)
+                return new_enum.type()
+            return self.tb.string()
+
+        def _load_ref(self, ref_path: str) -> FieldType:
+            keys = ref_path.lstrip("#/").split("/")
+            schema = self.spec
+
+            for key in keys:
+                schema = schema.get(key, {})
+
+            if "$ref" in schema:
+                return self._load_ref(schema["$ref"])
+
+            # return self.parse(schema, parent_key=keys[-1])
+            return schema
+
+    
+    
+        def parse(self, json_schema: Dict[str, Any], parent_key:str=None) -> FieldType:
+            if any_of := json_schema.get("anyOf"):
+                assert isinstance(any_of, list)
+                return self.tb.union([self.parse(sub_schema) for sub_schema in any_of])
+
+            if ref := json_schema.get("$ref"):
+                assert isinstance(ref, str)
+                # return self._load_ref(ref)
+                resolved_ref = self._load_ref(ref)
+                ref_name = ref.split("/")[-1]
+                return self.parse(resolved_ref, parent_key=ref_name)
+
+
+            type_ = json_schema.get("type")
+            if type_ is None:
+                raise ValueError(f"Type is required in JSON schema: {json_schema}")
+            parse_type = {
+                "string": lambda: self._parse_string(json_schema),
+                "number": lambda: self.tb.float(),
+                "integer": lambda: self.tb.int(),
+                "object": lambda: self._parse_object(json_schema, parent_key),
+                "array": lambda: self.parse(json_schema["items"], parent_key).list() if "items" in  json_schema else self.tb.list_of(self.tb.any()),
+                "boolean": lambda: self.tb.bool(),
+                "null": lambda: self.tb.null(),
+            }
+
+            if type_ not in parse_type:
+                raise ValueError(f"Unsupported type: {type_}")
+
+            field_type = parse_type[type_]()
+            print(field_type)
+            return field_type
+
+
+    def parse_json_schema(self, json_schema: Dict[str, Any], tb: TypeBuilder, spec: dict) -> FieldType:
+        parser = self.SchemaAdder(tb, json_schema, spec)
+        return parser.parse(json_schema, parent_key="root")
+    
     
     # def create_dynamic_type(self, schema, field_name:str="root"):
         
