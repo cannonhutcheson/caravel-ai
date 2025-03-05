@@ -162,9 +162,7 @@ class Parser:
             return schema["default"]            
             
         schema_type = schema.get("type")
-        print(f"{schema_type}")
         if schema_type == "string":
-            
             return "<string>"
         elif schema_type == "integer":
             return 0 # needs to be @ least 1 for pagination
@@ -220,13 +218,13 @@ class Parser:
             if not parent_key:
                 raise ValueError("parent_key is required to name the object correctly.")
 
-            print(f"Parsing object: {parent_key}")  # Debugging output
+            # print(f"Parsing object: {parent_key}")  # Debugging output
 
             required_fields = json_schema.get("required", [])
             assert isinstance(required_fields, list)
 
             if parent_key in self.existing_classes:
-                print(f"Skipping duplicate class definition for {parent_key}")
+                # print(f"Skipping duplicate class definition for {parent_key}")
                 return self.tb.get_class(parent_key).type()
 
             self.existing_classes.add(parent_key)
@@ -322,7 +320,7 @@ class Parser:
                 raise ValueError(f"Unsupported type: {type_}")
 
             field_type = parse_type[type_]()
-            print(field_type)
+            # print(field_type)
             return field_type
 
 
@@ -402,15 +400,15 @@ class Parser:
     
     def extract_request_body(self, openapi_spec: dict, path: str, method: str) -> tuple:
         request_body = openapi_spec["paths"][path][method].get("requestBody", {}).get("content", {})
-        print("Request body reference: ", request_body)
+        # print("Request body reference: ", request_body)
         schema = request_body.get("application/json", {}).get("schema", {})
-        print("schema", schema)
+        # print("schema", schema)
         
         # resolve ref check
         if "$ref" in schema:
             schema = self.resolve_ref(schema["$ref"])
         
-        print("Post-resolve schema", schema)
+        # print("Post-resolve schema", schema)
         
         if not schema:
             return {}

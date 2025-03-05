@@ -3,6 +3,7 @@ import json
 from typing import Dict, List
 from src.caravel.baml.baml_client.async_client import b
 from src.caravel.baml.baml_client.types import APIRequest, RequestBody, RequestDataStorage
+from caravel.baml.baml_client.type_builder import TypeBuilder
 from src.caravel.parsing import Parser
 import os
 import dotenv
@@ -101,5 +102,39 @@ class BamlRunner:
                         
             
             # create the request body, add to API request, and return it.
+            
+    async def construct_dynamic_api_request(self, intents: list[str], context: str):
+        '''
+        A Python wrapper for the ConstructDynamicAPIRequest baml function in Dynamic.baml. This will eventually replace self.construct_api_request.
+        '''
+        tb = TypeBuilder()
+        intent = await self.get_intent(intents=intents, intent=context)
+        path = self.parser.path_map[intent]
+        formatted_path = await self.make_path(path, context)
+        method = intent.split(" ")[0]
+        
+        qp_fmt = self.parser.extract_query_param_defaults(path, method.lower())
+        if len(qp_fmt.keys()) == 0:
+            qp_map = {}
+        else:
+            qp_fmt_flat = self.parser.flatten_query_params(qp_fmt)
+            qp_map = await self.populate_query_parameters(qp_fmt_flat, context)
+        
+        # we should handle the edge case where get needs a request body
+        
+        json_schema = self.parser.openapi_spec.get("paths", {}).get(path, {}).get(method.lower(), {}).get("requestBody", {}).get("schema", {})
+        if json_schema == {}:
+            rb_map = {}
+        else:
+            rb_fmt = self.parser.parse_json_schema(json_schema=json_schema, tb=tb, spec=self.parser.openapi_spec) # does variable declaration need to happen here?
+            rb_map = b.ExtractDynamicTypes(context, {"tb": tb})
+        # this will need to be passed into the dynamic rb creation function
+        # required = self.parser.extract_request_body(self.parser.openapi_spec, path, method.lower())[1]
+        
+        
+        api_request = await b.ConstructDynamicAPIRequest(path=formatted_path, method=method, params=qp_map, request_body=rb_map)
+        
+        return api_request
+        
             
 
